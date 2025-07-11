@@ -3,7 +3,7 @@ import os
 import discord
 from discord import app_commands
 
-from candybowl.ai import get_client
+from candybowl.ai import send_message
 
 
 class CandyBowlBot(discord.Client):
@@ -29,16 +29,25 @@ async def on_ready():
 @bot.tree.command(name="candybowl", description="Chat with the Gemini model.")
 async def candybowl(interaction: discord.Interaction, message: str):
     """Handles the /candybowl slash command to chat with the Gemini model."""
+    if not isinstance(interaction.channel, discord.TextChannel):
+        print("Command can only be used in text channels.")
+        return
+
     await interaction.response.defer()
+
     try:
+        thread = await interaction.channel.create_thread(
+            name=f"CandyBowl - {interaction.user.name}",
+            type=discord.ChannelType.public_thread,
+            auto_archive_duration=60,  # Auto-archive after 60 minutes of inactivity
+            message=await interaction.original_response(),
+        )
+
         # Send the message to the Gemini model
-        response = get_client().models.generate_content(
-            model="gemini-2.5-flash", contents=message
-        )
+        response = send_message(message)
+
         # Send the AI's response back to the Discord channel
-        await interaction.followup.send(
-            f"**You:** {message}\n**AI:** {response.text}"
-        )
+        await thread.send(f"{response}")
     except Exception as e:
         await interaction.followup.send(f"An error occurred: {e}")
 
