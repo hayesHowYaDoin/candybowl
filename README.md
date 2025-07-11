@@ -5,7 +5,9 @@
 
 Have you ever wondered if AI could replace capitalism? Wonder no longer.
 
-![logo not found!][logo]
+<p align="center">
+  <img src="https://github.com/hayesHowYaDoin/candybowl/blob/main/assets/bowl.png?raw=true" alt="You took too much too fast. The candy spills onto the floor."/>
+</p>
 
 All dependencies are managed through the [Poetry package manager][1], unit 
 tests utilize the [pytest][4] framework, and the static analysis tools 
@@ -52,4 +54,3 @@ just run .............. Runs the application
 [5]: https://nixos.org/
 [6]: https://direnv.net/
 [7]: https://git-scm.com/
-[logo]: https://github.com/hayesHowYaDoin/candybowl/raw/main/assets/bowl.png "You took too much too fast. The candy spills onto the floor."
