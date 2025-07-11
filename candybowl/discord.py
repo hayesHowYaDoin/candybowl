@@ -3,7 +3,7 @@ import os
 import discord
 from discord import app_commands
 
-from candybowl.ai import create_chat, send_message
+from candybowl.ai import create_chat, initialize_chat, send_message
 
 
 _thread_chats = {}
@@ -53,6 +53,9 @@ async def candybowl(interaction: discord.Interaction):
         )
 
         _thread_chats[thread.id] = create_chat()
+        response = initialize_chat(_thread_chats[thread.id])
+
+        await thread.send(response)
 
     except Exception as e:
         await interaction.followup.send(f"An error occurred: {e}")
