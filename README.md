@@ -52,4 +52,4 @@ just run .............. Runs the application
 [5]: https://nixos.org/
 [6]: https://direnv.net/
 [7]: https://git-scm.com/
-[logo]: https://github.com/hayesHowYaDoin/candybowl/raw/master/assets/bowl.png "You took too much too fast. The candy spills onto the floor."
+[logo]: https://github.com/hayesHowYaDoin/candybowl/raw/main/assets/bowl.png "You took too much too fast. The candy spills onto the floor."
