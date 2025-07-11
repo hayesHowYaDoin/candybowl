@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "python_template"
+version = "0.1.0"
+description = ""
+authors = ["Jordan Hayes <jordanhayes98@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+mypy = "^1.8.0"
+python = "^3.13"
+pytest = "^7.4.4"
+ruff = "^0.1.14"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+enable_incomplete_feature = ["NewGenericSyntax"]
+
+[tool.ruff]
+line-length = 80
+indent-width = 4
