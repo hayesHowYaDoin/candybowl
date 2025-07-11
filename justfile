@@ -12,5 +12,8 @@ analyze:
 test:
 	pytest .
 
+pre-commit:
+    pre-commit run --all-files
+
 run:
 	python -m apps.main
