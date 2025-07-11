@@ -4,12 +4,15 @@ main.py
 Defines an entrypoint for the example project.
 """
 
-from python_template.example import add
+from dotenv import load_dotenv
+
+from candybowl import discord
 
 
 def main() -> None:
-    """Prints the sum of two numbers."""
-    print(add(1, 2))
+    """Runs the Discord bot."""
+    load_dotenv()
+    discord.start_bot()
 
 
 if __name__ == "__main__":
