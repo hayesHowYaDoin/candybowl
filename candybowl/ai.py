@@ -9,15 +9,18 @@ _client = genai.Client(
 )
 
 
-def send_message(message: str) -> Optional[str]:
+def create_chat():
+    """Creates a chat session with the Gemini model."""
+    try:
+        return _client.chats.create(model="gemini-2.5-flash")
+    except Exception as e:
+        raise RuntimeError(f"Failed to create chat: {e}")
+
+
+def send_message(chat, message: str) -> Optional[str]:
     """Sends a message to the Gemini model and returns the response."""
     try:
-        response = _client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=message,
-        )
-
-        return response.text
+        return chat.send_message(message).text
 
     except Exception as e:
         raise RuntimeError(f"Failed to generate content: {e}")

@@ -3,7 +3,10 @@ import os
 import discord
 from discord import app_commands
 
-from candybowl.ai import send_message
+from candybowl.ai import create_chat, send_message
+
+
+_thread_chats = {}
 
 
 class CandyBowlBot(discord.Client):
@@ -27,29 +30,46 @@ async def on_ready():
 
 
 @bot.tree.command(name="candybowl", description="Chat with the Gemini model.")
-async def candybowl(interaction: discord.Interaction, message: str):
-    """Handles the /candybowl slash command to chat with the Gemini model."""
+async def candybowl(interaction: discord.Interaction):
+    """Handles the /candybowl slash command to start a chat with the Gemini model."""
     if not isinstance(interaction.channel, discord.TextChannel):
         print("Command can only be used in text channels.")
         return
 
+    print("Starting thread...")
+
     await interaction.response.defer()
 
     try:
+        user_message = await interaction.followup.send(
+            f"Hello, {interaction.user.name}! What can I do for you?"
+        )
+
         thread = await interaction.channel.create_thread(
             name=f"CandyBowl - {interaction.user.name}",
             type=discord.ChannelType.public_thread,
             auto_archive_duration=60,  # Auto-archive after 60 minutes of inactivity
-            message=await interaction.original_response(),
+            message=user_message,
         )
 
-        # Send the message to the Gemini model
-        response = send_message(message)
+        _thread_chats[thread.id] = create_chat()
 
-        # Send the AI's response back to the Discord channel
-        await thread.send(f"{response}")
     except Exception as e:
         await interaction.followup.send(f"An error occurred: {e}")
+
+
+@bot.event
+async def on_message(message: discord.Message):
+    if message.author == bot.user:
+        return
+
+    chat = _thread_chats.get(message.channel.id)
+    if chat:
+        print(
+            f"Received message in thread {message.channel.id}: {message.content}"
+        )
+        response = send_message(chat, message.content)
+        await message.channel.send(f"{response}")
 
 
 def start_bot() -> None:
