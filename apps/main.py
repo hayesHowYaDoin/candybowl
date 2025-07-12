@@ -1,7 +1,7 @@
 """
 main.py
 ---------
-Defines an entrypoint for the example project.
+Defines an entrypoint for running the Discord bot.
 """
 
 from dotenv import load_dotenv

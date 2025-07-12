@@ -3,7 +3,7 @@ import os
 import discord
 from discord import app_commands
 
-from candybowl.ai import create_chat, initialize_chat, send_message
+from candybowl.ai.chat import create_chat, initialize_chat, send_message
 
 
 _thread_chats = {}
