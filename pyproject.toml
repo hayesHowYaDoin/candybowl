@@ -15,7 +15,6 @@ google-genai = "^1.25.0"
 google = "^3.0.0"
 python-dotenv = "^1.1.1"
 discord-py = "^2.5.2"
-mcp = {extras = ["cli"], version = "^1.11.0"}
 loguru = "^0.7.3"
 pandas = "^2.3.1"
 
