@@ -1,6 +1,7 @@
 import os
 import uuid
 
+from loguru import logger
 import pandas as pd
 
 
@@ -13,6 +14,7 @@ class InventoryManagerCSV:
     def _initialize_csv(self):
         """Ensures the CSV file exists with the correct header."""
         if not os.path.exists(self.csv_filepath):
+            os.makedirs(os.path.dirname(self.csv_filepath), exist_ok=True)
             pd.DataFrame(
                 columns=[
                     "item_id",
@@ -38,39 +40,6 @@ class InventoryManagerCSV:
         """Returns the inventory as a DataFrame."""
         return self._get_all_items()
 
-    def add_item(
-        self,
-        item_name: str,
-        link: str,
-        price_usd: float,
-        description: str,
-    ) -> None:
-        """Adds a new item to the inventory."""
-        inventory = self.get_inventory()
-        if not inventory[
-            (inventory["item_name"] == item_name) | (inventory["link"] == link)
-        ].empty:
-            raise ValueError(
-                "An item with the same name or link already exists."
-            )
-
-        new_row = {
-            "item_id": str(uuid.uuid4()),
-            "item_name": item_name,
-            "link": link,
-            "quantity": 0,
-            "price_usd": price_usd,
-            "description": description,
-        }
-
-        inventory = pd.concat(
-            [
-                inventory,
-                pd.DataFrame([new_row]),
-            ],
-            ignore_index=True,
-        )
-
     def _prune_inventory(self) -> None:
         """Removes items from the inventory that have a quantity of 0."""
         inventory = self._get_all_items()
@@ -92,8 +61,12 @@ class InventoryManagerCSV:
         self._set_all_items(inventory)
         self._prune_inventory()
 
-    def buy_item(self, item_id: str, quantity: int) -> None:
-        """Buys an item, increasing its quantity in the inventory."""
+    def _add_item(
+        self,
+        item_id: str,
+        quantity: int,
+    ) -> None:
+        """Adds stock for an item, increasing its quantity in the inventory."""
         inventory = self._get_all_items()
         if item_id not in inventory["item_id"].values:
             raise ValueError(f"Item with ID {item_id} does not exist.")
@@ -104,17 +77,52 @@ class InventoryManagerCSV:
         new_quantity = current_quantity + quantity
         self._update_quantity(item_id, new_quantity)
 
-    def sell_item(self, item_id: str, quantity: int) -> None:
-        """Sells an item, decreasing its quantity in the inventory."""
+    def stock_item(
+        self,
+        item_name: str,
+        link: str,
+        quantity: int,
+        price_usd: float,
+        description: str,
+    ) -> None:
+        """Adds new items to the inventory.
+
+        Increases the quantity of a given item if it already exists in the inventory, or adds a new entry if it does not.
+
+        Args:
+            item_name: The name of the item.
+            link: The link to the item.
+            quantity: The quantity to add.
+            price_usd: The price of the item in USD.
+            description: A description of the item.
+        """
         inventory = self._get_all_items()
-        if item_id not in inventory["item_id"].values:
-            raise ValueError(f"Item with ID {item_id} does not exist.")
+        if not inventory[
+            (inventory["item_name"] == item_name) | (inventory["link"] == link)
+        ].empty:
+            logger.info(
+                f"Item '{item_name}' already exists in inventory. Updating quantity..."
+            )
+            item_id = inventory[
+                (inventory["item_name"] == item_name)
+                | (inventory["link"] == link)
+            ]["item_id"].values[0]
+            self._add_item(item_id, quantity)
 
-        current_quantity = inventory.loc[
-            inventory["item_id"] == item_id, "quantity"
-        ].values[0]
-        if current_quantity < quantity:
-            raise ValueError("Not enough quantity to sell.")
+        new_row = {
+            "item_id": str(uuid.uuid4()),
+            "item_name": item_name,
+            "link": link,
+            "quantity": 0,
+            "price_usd": price_usd,
+            "description": description,
+        }
 
-        new_quantity = current_quantity - quantity
-        self._update_quantity(item_id, new_quantity)
+        inventory = pd.concat(
+            [
+                inventory,
+                pd.DataFrame([new_row]),
+            ],
+            ignore_index=True,
+        )
+        self._set_all_items(inventory)

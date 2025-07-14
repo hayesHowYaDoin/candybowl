@@ -2,8 +2,9 @@ import os
 
 import discord
 from discord import app_commands
+from loguru import logger
 
-from candybowl.ai.chat import create_chat, initialize_chat, send_message
+from candybowl.ai.chat import create_chat, send_message
 
 
 _thread_chats = {}
@@ -18,25 +19,25 @@ class CandyBowlBot(discord.Client):
 
     async def setup_hook(self):
         await self.tree.sync()
-        print("Slash commands synced!")
+        logger.info("Slash commands synced!")
 
 
-bot = CandyBowlBot()
+_bot = CandyBowlBot()
 
 
-@bot.event
+@_bot.event
 async def on_ready():
-    print(f"Logged in as {bot.user} and ready to receive commands!")
+    logger.info(f"Logged in as {_bot.user} and ready to receive commands!")
 
 
-@bot.tree.command(name="candybowl", description="Chat with the Gemini model.")
+@_bot.tree.command(name="candybowl", description="Chat with the Gemini model.")
 async def candybowl(interaction: discord.Interaction):
     """Handles the /candybowl slash command to start a chat with the Gemini model."""
     if not isinstance(interaction.channel, discord.TextChannel):
-        print("Command can only be used in text channels.")
+        logger.error("Command can only be used in text channels.")
         return
 
-    print("Starting thread...")
+    logger.info("Starting thread...")
 
     await interaction.response.defer()
 
@@ -53,25 +54,23 @@ async def candybowl(interaction: discord.Interaction):
         )
 
         _thread_chats[thread.id] = create_chat()
-        response = initialize_chat(_thread_chats[thread.id])
-
-        await thread.send(response)
 
     except Exception as e:
         await interaction.followup.send(f"An error occurred: {e}")
 
 
-@bot.event
+@_bot.event
 async def on_message(message: discord.Message):
-    if message.author == bot.user:
+    if len(message.content) == 0 or message.author == _bot.user:
         return
 
     chat = _thread_chats.get(message.channel.id)
     if chat:
-        print(
+        logger.info(
             f"Received message in thread {message.channel.id}: {message.content}"
         )
-        response = send_message(chat, message.content)
+        response = send_message(chat, message.content[:2000])
+        logger.info(f"Response from Gemini model: {response}")
         await message.channel.send(f"{response}")
 
 
@@ -82,4 +81,4 @@ def start_bot() -> None:
         raise ValueError(
             "DISCORD_BOT_TOKEN is not set in the environment variables."
         )
-    bot.run(discord_token)
+    _bot.run(discord_token)

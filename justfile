@@ -1,5 +1,5 @@
 default:
-  @just --list
+	@just --list
 
 install:
 	poetry install

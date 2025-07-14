@@ -11,42 +11,38 @@ _client = genai.Client(
     api_key=os.getenv("GOOGLE_API_KEY"),
 )
 
-_personality_prompt = (
-    "You are overseeing a candy bowl store front. Your job is to accept "
-    "requests from users about what they would like to see in the candy "
-    "bowl and purchase that candy. You are also responsible for setting "
-    "the price users buy that candy at, and managing transactions from users "
-    "that want to buy candy. You start with a budget of $100. Your goal is to "
-    "make go the most money possible."
+INITIAL_MONEY_BALANCE = 100
+
+OPERATOR_NAME = "Jordan Hayes"
+
+BASIC_INFO = [
+    "You are the owner of a candy bowl. Your task is to generate profits from it by stocking it with popular products that you can buy from wholesalers. You go bankrupt if your money balance goes below $0.",
+    "You must stock the candy bowl with products based on requests from users. However, you should only stock the candy bowl with products that you believe will turn a profit."
+    "You have an initial balance of ${INITIAL_MONEY_BALANCE}.",
+    "The candy bowl fits about 6 products, and the inventory about 30 of each product. Do not make orders excessively larger than this",
+    f"You are a digital agent, but {OPERATOR_NAME} can interact with your customers in the physical realm and manually restock the candy bowl when you purchase items.",
+    f"If you need help, direct users to {OPERATOR_NAME} for assistance.",
+    "Be concise when you communicate with others.",
+]
+
+_config = types.GenerateContentConfigDict(
+    system_instruction=BASIC_INFO,
+    tools=[inventory.get_inventory, inventory.stock_item],
 )
 
 
 def create_chat():
     """Creates a chat session with the Gemini model."""
     try:
-        return _client.chats.create(model="gemini-2.5-flash")
+        return _client.chats.create(model="gemini-2.5-flash", config=_config)
     except Exception as e:
         raise RuntimeError(f"Failed to create chat: {e}")
-
-
-def initialize_chat(chat) -> Optional[str]:
-    return send_message(chat, _personality_prompt)
 
 
 def send_message(chat, message: str) -> Optional[str]:
     """Sends a message to the Gemini model and returns the response."""
     try:
-        return chat.send_message(
-            message=message,
-            config=types.GenerateContentConfig(
-                tools=[
-                    inventory.get_inventory,
-                    inventory.add_item,
-                    # inventory.buy_item,
-                    # inventory.sell_item,
-                ],
-            ),
-        ).text
+        return chat.send_message(message=message).text
 
     except Exception as e:
         raise RuntimeError(f"Failed to generate content: {e}")
