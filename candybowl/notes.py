@@ -7,6 +7,7 @@ class NotesFile:
         try:
             with open(self.file_path, "r") as file:
                 return file.read()
+
         except FileNotFoundError:
             return "Note file not found."
 

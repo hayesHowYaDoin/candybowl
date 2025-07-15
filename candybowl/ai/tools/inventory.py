@@ -27,6 +27,7 @@ def get_inventory() -> str:
 
         logger.info(f"Current inventory: {inventory}")
         return inventory
+
     except Exception as e:
         logger.error(f"Error retrieving inventory: {e}")
         return f"Error: {e}"
@@ -69,8 +70,30 @@ def stock_item(
         )
 
         logger.info(f"Current inventory: {inventory.get_inventory().to_json()}")
-
         return "Item added successfully."
+
     except Exception as ex:
         logger.error(f"Error adding item: {ex}")
+        return f"Error: {ex}"
+
+
+def set_price(item_id: str, new_price_usd: float) -> str:
+    """Sets a new price for an item in the inventory.
+    Args:
+        item_id: The unique identifier for the item.
+        new_price_usd: The new price of the item in USD.
+    Returns:
+        A message indicating success or failure.
+    """
+    logger.info(f"Setting new price for item {item_id}: {new_price_usd} USD")
+
+    try:
+        inventory = InventoryManagerCSV(_inventory_csv)
+        inventory.set_price(item_id=item_id, new_price_usd=new_price_usd)
+
+        logger.info(f"Current inventory: {inventory.get_inventory().to_json()}")
+        return "Price updated successfully."
+
+    except Exception as ex:
+        logger.error(f"Error updating price: {ex}")
         return f"Error: {ex}"

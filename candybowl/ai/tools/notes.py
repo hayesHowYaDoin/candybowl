@@ -19,9 +19,10 @@ def get_notes() -> str:
         notes_content = notes_file.read()
         logger.info(f"Current notes: {notes_content}")
         return notes_content
-    except Exception as e:
-        logger.error(f"Error retrieving notes: {e}")
-        return f"Error: {e}"
+
+    except Exception as ex:
+        logger.error(f"Error retrieving notes: {ex}")
+        return f"Error: {ex}"
 
 
 def add_note(note: str) -> str:
@@ -40,6 +41,6 @@ def add_note(note: str) -> str:
         notes_file.append(note)
         logger.info("Note added successfully.")
         return "Note added successfully."
-    except Exception as e:
-        logger.error(f"Error adding note: {e}")
-        return f"Error: {e}"
+    except Exception as ex:
+        logger.error(f"Error adding note: {ex}")
+        return f"Error: {ex}"

@@ -126,3 +126,22 @@ class InventoryManagerCSV:
             ignore_index=True,
         )
         self._set_all_items(inventory)
+
+    def set_price(self, item_id: str, new_price_usd: float) -> None:
+        """Sets the price of an item in the inventory.
+
+        Args:
+            item_id: The ID of the item to update.
+            new_price_usd: The new price of the item in USD.
+        """
+        if new_price_usd < 0:
+            raise ValueError("Price cannot be negative.")
+
+        inventory = self._get_all_items()
+        if item_id not in inventory["item_id"].values:
+            raise ValueError(f"Item with ID {item_id} does not exist.")
+
+        inventory.loc[inventory["item_id"] == item_id, "price_usd"] = (
+            new_price_usd
+        )
+        self._set_all_items(inventory)
