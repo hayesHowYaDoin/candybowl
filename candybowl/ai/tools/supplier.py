@@ -23,6 +23,10 @@ def search_product(name: str) -> str:
 
     try:
         items = amazon.search_product(name, limit=5)
+        if items is None:
+            logger.info("No items found for the given product name.")
+            return "Error: No items found."
+
         results_json = {"results": [item.to_dict() for item in items]}
 
         logger.info(f"Search results: {results_json}")

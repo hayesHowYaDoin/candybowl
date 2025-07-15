@@ -74,6 +74,7 @@ def search_product(keywords: str, limit: int) -> list[Item]:
 
     # Define the request payload
     payload = {"query": query, "variables": variables}
+    logger.debug(f"Payload: {payload}")
 
     # Send the POST request to the GraphQL endpoint
     response = requests.post(url, json=payload, headers=headers)
@@ -85,6 +86,8 @@ def search_product(keywords: str, limit: int) -> list[Item]:
         logger.error(f"Response: {response.text}")
 
     data = response.json()
+    logger.debug(f"Response data: {data}")
+
     items = [
         Item.from_canopy(item)
         for item in data["data"]["amazonProductSearchResults"][

@@ -139,6 +139,11 @@ async def restock(interaction: discord.Interaction) -> None:
 
 @_bot.event
 async def on_message(message: discord.Message):
+    """Handles incoming messages in threads and sends them to the Gemini model."""
+    logger.info(
+        f"Received message: {message.content} from {message.author.name}"
+    )
+
     if len(message.content) == 0 or message.author == _bot.user:
         return
 
@@ -148,7 +153,9 @@ async def on_message(message: discord.Message):
             f"Received message in thread {message.channel.id}: {message.content}"
         )
 
-        response = send_message(chat, message.content[:2000])
+        response = send_message(
+            chat, message.author.name + ": " + message.content[:2000]
+        )
         logger.info(f"Response from Gemini model: {response}")
         await message.channel.send(f"{response}")
 

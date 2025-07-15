@@ -15,7 +15,8 @@ def get_inventory() -> str:
             - item_name: The name of the item.
             - link: A link for where to purchase the item.
             - quantity: The current quantity of the item in stock.
-            - price_usd: The price of the item in USD.
+            - total_purchase_price_usd: The price of one of the item in USD (note that one item can have multiple units).
+            - sell_price_usd: The price of a single unit of the item in USD.
             - description: A description of the item.
     """
     logger.info("Retrieving current inventory.")
@@ -37,7 +38,8 @@ def stock_item(
     item_name: str,
     link: str,
     quantity: int,
-    price_usd: float,
+    total_purchase_price_usd: float,
+    sell_price_usd: float,
     description: str,
 ) -> str:
     """Adds new items to the inventory.
@@ -48,7 +50,8 @@ def stock_item(
         item_name: The name of the item.
         link: The link to the item.
         quantity: The quantity to add.
-        price_usd: The price of the item in USD.
+        total_purchase_price_usd: The price of one of the item in USD (note that one item can have multiple units).
+        sell_price_usd: The price of a single unit of the item in USD.
         description: A description of the item.
 
     Returns:
@@ -56,7 +59,7 @@ def stock_item(
     """
     logger.info(
         f"Adding new item to inventory:\n  item_name: {item_name}\n"
-        f"  link: {link}\n  price_usd: {price_usd}\n  description: {description}"
+        f"  link: {link}\n  total_purchase_price_usd: {total_purchase_price_usd}\n  sell_price_usd: {sell_price_usd}\n  description: {description}"
     )
 
     try:
@@ -65,7 +68,8 @@ def stock_item(
             item_name=item_name,
             link=link,
             quantity=quantity,
-            price_usd=price_usd,
+            total_purchase_price_usd=total_purchase_price_usd,
+            sell_price_usd=sell_price_usd,
             description=description,
         )
 

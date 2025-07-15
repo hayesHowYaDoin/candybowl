@@ -21,7 +21,8 @@ class InventoryManagerCSV:
                     "item_name",
                     "link",
                     "quantity",
-                    "price_usd",
+                    "total_purchase_price_usd",
+                    "sell_price_usd",
                     "description",
                 ]
             ).to_csv(self.csv_filepath, index=False)
@@ -82,7 +83,8 @@ class InventoryManagerCSV:
         item_name: str,
         link: str,
         quantity: int,
-        price_usd: float,
+        total_purchase_price_usd: float,
+        sell_price_usd: float,
         description: str,
     ) -> None:
         """Adds new items to the inventory.
@@ -93,7 +95,8 @@ class InventoryManagerCSV:
             item_name: The name of the item.
             link: The link to the item.
             quantity: The quantity to add.
-            price_usd: The price of the item in USD.
+            total_purchase_price_usd: The price of one of the item in USD (note that one item can have multiple units).
+            sell_price_usd: The price of a single unit of the item in USD.
             description: A description of the item.
         """
         inventory = self._get_all_items()
@@ -114,7 +117,8 @@ class InventoryManagerCSV:
             "item_name": item_name,
             "link": link,
             "quantity": 0,
-            "price_usd": price_usd,
+            "total_purchase_price_usd": total_purchase_price_usd,
+            "sell_price_usd": sell_price_usd,
             "description": description,
         }
 
@@ -141,7 +145,7 @@ class InventoryManagerCSV:
         if item_id not in inventory["item_id"].values:
             raise ValueError(f"Item with ID {item_id} does not exist.")
 
-        inventory.loc[inventory["item_id"] == item_id, "price_usd"] = (
+        inventory.loc[inventory["item_id"] == item_id, "sell_price_usd"] = (
             new_price_usd
         )
         self._set_all_items(inventory)
