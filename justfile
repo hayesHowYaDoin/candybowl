@@ -15,5 +15,9 @@ test:
 pre-commit:
     pre-commit run --all-files
 
-run:
+run arg="":
+	if {{arg}} == "backend" {
+		cd backend
+		python -m apps.backend
+
 	python -m apps.main

@@ -6,11 +6,6 @@ from google.genai.chats import Chat
 
 from .tools import inventory, notes, supplier, bank
 
-
-_client = genai.Client(
-    api_key=os.getenv("GOOGLE_API_KEY"),
-)
-
 INITIAL_MONEY_BALANCE = 100
 
 OPERATOR_NAME = "Jordan Hayes"
@@ -59,6 +54,12 @@ RESTOCK_MESSAGE = (
     "Justify your decisions in a concise manner, and provide the total cost of the restock."
     "The total cost of the restock must not exceed the current balance in the bank account."
 )
+
+_client = genai.Client(
+    api_key=os.getenv("GOOGLE_API_KEY"),
+)
+
+_chats = {}
 
 
 def request_chat() -> Chat:

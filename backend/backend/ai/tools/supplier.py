@@ -1,7 +1,5 @@
 from loguru import logger
 
-from candybowl import amazon
-
 
 def search_product(name: str) -> str:
     """Searches the marketplace for a product by name and returns a JSON string of the results.
@@ -22,7 +20,7 @@ def search_product(name: str) -> str:
     logger.info(f"Searching for product: {name}")
 
     try:
-        items = amazon.search_product(name, limit=5)
+        items = search_product(name, limit=5)
         if items is None:
             logger.info("No items found for the given product name.")
             return "Error: No items found."

@@ -6,13 +6,13 @@ Defines an entrypoint for running the Discord bot.
 
 from dotenv import load_dotenv
 
-from candybowl import discord
+from chatbot.discord import start_bot
 
 
 def main() -> None:
     """Runs the Discord bot."""
     load_dotenv()
-    discord.start_bot()
+    start_bot()
 
 
 if __name__ == "__main__":

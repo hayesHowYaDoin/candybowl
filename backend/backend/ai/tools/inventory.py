@@ -1,6 +1,6 @@
 from loguru import logger
 
-from candybowl.inventory import InventoryManagerCSV
+from backend.inventory import InventoryManagerCSV
 
 
 _inventory_csv = "data/inventory.csv"

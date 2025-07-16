@@ -1,6 +1,6 @@
 from loguru import logger
 
-from candybowl.notes import NotesFile
+from backend.notes import NotesFile
 
 
 _notes_txt = "data/notes.txt"

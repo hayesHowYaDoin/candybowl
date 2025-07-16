@@ -9,6 +9,11 @@
       libz # fix: for numpy/pandas import
     ];
 
+    processes = {
+      backend.exec = "cd backend && python -m apps.main";
+      chatbot.exec = "cd chatbot && python -m apps.main";
+    };
+
     dotenv.enable = true;
 
     languages.python = {
