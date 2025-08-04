@@ -4,6 +4,8 @@
   config = {
     packages = with pkgs; [
       just
+      flutter
+      chromium
       stdenv.cc.cc.lib # required by jupyter
       gcc-unwrapped # fix: libstdc++.so.6: cannot open shared object file
       libz # fix: for numpy/pandas import
@@ -12,6 +14,7 @@
     processes = {
       backend.exec = "cd backend && python -m apps.main";
       chatbot.exec = "cd chatbot && python -m apps.main";
+      storefront.exec = "cd storefront && flutter run";
     };
 
     dotenv.enable = true;
@@ -30,13 +33,19 @@
       npm.enable = true;
     };
 
+    languages.dart.enable = true;
+
     git-hooks.hooks = {
       nixpkgs-fmt.enable = true;
       ruff.enable = true;
       ruff-format.enable = true;
+      dart-analyze.enable = true;
+      dart-format.enable = true;
     };
 
     # Ensure correct load path
     env.LD_LIBRARY_PATH = "${pkgs.gcc-unwrapped.lib}/lib64:${pkgs.libz}/lib";
+
+    env.CHROME_EXECUTABLE = "chromium";
   };
 }
