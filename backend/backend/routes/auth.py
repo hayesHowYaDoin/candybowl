@@ -5,6 +5,13 @@ from flask.wrappers import Response
 
 from backend.auth.models import UserManager, UserRole
 from backend.auth.jwt_auth import generate_token, require_auth, require_admin
+from backend.schemas.auth import (
+    RegisterRequest,
+    LoginRequest,
+    UpdateRoleRequest,
+    ValidateTokenRequest,
+)
+from backend.utils.validation import validate_json
 
 bp = Blueprint("auth", __name__)
 
@@ -59,35 +66,14 @@ def validate_username(username: str) -> tuple[bool, str]:
 
 
 @bp.route("/auth/register", methods=["POST"])
+@validate_json(RegisterRequest)
 def register() -> StatusCode:
     """Register a new user."""
     try:
-        if request.json is None:
-            return jsonify({"error": "Invalid request format"}), 400
-
-        username = request.json.get("username", "").strip()
-        email = request.json.get("email", "").strip()
-        password = request.json.get("password", "")
-
-        # Validation
-        if not all([username, email, password]):
-            return jsonify(
-                {"error": "Username, email, and password are required"}
-            ), 400
-
-        # Validate username
-        username_valid, username_error = validate_username(username)
-        if not username_valid:
-            return jsonify({"error": username_error}), 400
-
-        # Validate email
-        if not validate_email(email):
-            return jsonify({"error": "Invalid email format"}), 400
-
-        # Validate password
-        password_valid, password_error = validate_password(password)
-        if not password_valid:
-            return jsonify({"error": password_error}), 400
+        validated_data: RegisterRequest = request.validated_data
+        username = validated_data.username
+        email = validated_data.email
+        password = validated_data.password
 
         # Check if username already exists
         if user_manager.get_user_by_username(username):
@@ -130,17 +116,13 @@ def register() -> StatusCode:
 
 
 @bp.route("/auth/login", methods=["POST"])
+@validate_json(LoginRequest)
 def login() -> StatusCode:
     """Login user with username and password."""
     try:
-        if request.json is None:
-            return jsonify({"error": "Invalid request format"}), 400
-
-        username = request.json.get("username", "").strip()
-        password = request.json.get("password", "")
-
-        if not all([username, password]):
-            return jsonify({"error": "Username and password are required"}), 400
+        validated_data: LoginRequest = request.validated_data
+        username = validated_data.username
+        password = validated_data.password
 
         # Authenticate user
         user = user_manager.authenticate(username, password)
@@ -226,22 +208,12 @@ def list_users() -> StatusCode:
 @bp.route("/auth/users/<user_id>/role", methods=["PUT"])
 @require_auth
 @require_admin
+@validate_json(UpdateRoleRequest)
 def update_user_role(user_id: str) -> StatusCode:
     """Update user role (admin only)."""
     try:
-        if request.json is None:
-            return jsonify({"error": "Invalid request format"}), 400
-
-        new_role_str = request.json.get("role")
-        if not new_role_str:
-            return jsonify({"error": "Role is required"}), 400
-
-        try:
-            new_role = UserRole(new_role_str)
-        except ValueError:
-            return jsonify(
-                {"error": "Invalid role. Must be 'user' or 'admin'"}
-            ), 400
+        validated_data: UpdateRoleRequest = request.validated_data
+        new_role = UserRole(validated_data.role)
 
         # Check if user exists
         user = user_manager.get_user_by_id(user_id)
@@ -269,15 +241,12 @@ def update_user_role(user_id: str) -> StatusCode:
 
 
 @bp.route("/auth/validate", methods=["POST"])
+@validate_json(ValidateTokenRequest)
 def validate_token() -> StatusCode:
     """Validate a JWT token."""
     try:
-        if request.json is None:
-            return jsonify({"error": "Invalid request format"}), 400
-
-        token = request.json.get("token")
-        if not token:
-            return jsonify({"error": "Token is required"}), 400
+        validated_data: ValidateTokenRequest = request.validated_data
+        token = validated_data.token
 
         from backend.auth.jwt_auth import verify_token
 

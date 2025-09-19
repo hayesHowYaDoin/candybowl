@@ -5,6 +5,12 @@ from flask.wrappers import Response
 
 from backend.inventory import InventoryManagerCSV
 from backend.auth.jwt_auth import require_auth, require_admin
+from backend.schemas.inventory import (
+    PurchaseRequest,
+    AddInventoryRequest,
+    UpdateInventoryRequest,
+)
+from backend.utils.validation import validate_json
 
 bp = Blueprint("inventory", __name__)
 
@@ -34,20 +40,13 @@ def get_inventory() -> StatusCode:
 
 @bp.route("/api/purchase", methods=["POST"])
 @require_auth
+@validate_json(PurchaseRequest)
 def purchase_item() -> StatusCode:
     """Handles item purchases by decreasing inventory quantity."""
     try:
-        if request.json is None:
-            return jsonify({"error": "Invalid request format"}), 400
-
-        item_id = request.json.get("item_id")
-        quantity = request.json.get("quantity", 1)
-
-        if not item_id:
-            return jsonify({"error": "item_id is required"}), 400
-
-        if quantity <= 0:
-            return jsonify({"error": "quantity must be positive"}), 400
+        validated_data: PurchaseRequest = request.validated_data
+        item_id = validated_data.item_id
+        quantity = validated_data.quantity
 
         inventory_manager = InventoryManagerCSV(_inventory_csv)
         inventory_df = inventory_manager.get_inventory()
@@ -90,35 +89,17 @@ def purchase_item() -> StatusCode:
 @bp.route("/api/inventory", methods=["POST"])
 @require_auth
 @require_admin
+@validate_json(AddInventoryRequest)
 def add_inventory_item() -> StatusCode:
     """Add a new item to inventory (admin only)."""
     try:
-        if request.json is None:
-            return jsonify({"error": "Invalid request format"}), 400
-
-        item_name = request.json.get("item_name", "").strip()
-        link = request.json.get("link", "").strip()
-        quantity = request.json.get("quantity", 0)
-        purchase_price = request.json.get("purchase_price", 0.0)
-        sell_price = request.json.get("sell_price", 0.0)
-        description = request.json.get("description", "").strip()
-
-        # Validation
-        if not all([item_name, link, description]):
-            return jsonify(
-                {"error": "item_name, link, and description are required"}
-            ), 400
-
-        if quantity < 0:
-            return jsonify({"error": "quantity must be non-negative"}), 400
-
-        if purchase_price < 0 or sell_price < 0:
-            return jsonify({"error": "prices must be non-negative"}), 400
-
-        if sell_price <= purchase_price:
-            return jsonify(
-                {"error": "sell_price must be greater than purchase_price"}
-            ), 400
+        validated_data: AddInventoryRequest = request.validated_data
+        item_name = validated_data.item_name
+        link = validated_data.link
+        quantity = validated_data.quantity
+        purchase_price = validated_data.purchase_price
+        sell_price = validated_data.sell_price
+        description = validated_data.description
 
         inventory_manager = InventoryManagerCSV(_inventory_csv)
 
@@ -155,11 +136,11 @@ def add_inventory_item() -> StatusCode:
 @bp.route("/api/inventory/<item_id>", methods=["PUT"])
 @require_auth
 @require_admin
+@validate_json(UpdateInventoryRequest)
 def update_inventory_item(item_id: str) -> StatusCode:
     """Update an existing inventory item (admin only)."""
     try:
-        if request.json is None:
-            return jsonify({"error": "Invalid request format"}), 400
+        validated_data: UpdateInventoryRequest = request.validated_data
 
         inventory_manager = InventoryManagerCSV(_inventory_csv)
         inventory_df = inventory_manager.get_inventory()
@@ -169,27 +150,17 @@ def update_inventory_item(item_id: str) -> StatusCode:
         if item_row.empty:
             return jsonify({"error": "Item not found"}), 404
 
-        # Get update fields
-        quantity = request.json.get("quantity")
-        sell_price = request.json.get("sell_price")
-
         updates_made = []
 
         # Update quantity if provided
-        if quantity is not None:
-            if quantity < 0:
-                return jsonify({"error": "quantity must be non-negative"}), 400
-            inventory_manager._update_quantity(item_id, quantity)
-            updates_made.append(f"quantity: {quantity}")
+        if validated_data.quantity is not None:
+            inventory_manager._update_quantity(item_id, validated_data.quantity)
+            updates_made.append(f"quantity: {validated_data.quantity}")
 
         # Update sell price if provided
-        if sell_price is not None:
-            if sell_price < 0:
-                return jsonify(
-                    {"error": "sell_price must be non-negative"}
-                ), 400
-            inventory_manager.set_price(item_id, sell_price)
-            updates_made.append(f"sell_price: ${sell_price:.2f}")
+        if validated_data.sell_price is not None:
+            inventory_manager.set_price(item_id, validated_data.sell_price)
+            updates_made.append(f"sell_price: ${validated_data.sell_price:.2f}")
 
         current_user = request.current_user
 
