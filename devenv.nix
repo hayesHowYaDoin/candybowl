@@ -12,6 +12,7 @@
     processes = {
       backend.exec = "cd backend && python -m apps.main";
       chatbot.exec = "cd chatbot && python -m apps.main";
+      frontend.exec = "cd frontend && npm install && npm run dev -- --host 0.0.0.0";
     };
 
     dotenv.enable = true;

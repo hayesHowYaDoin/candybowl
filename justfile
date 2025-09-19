@@ -3,6 +3,7 @@ default:
 
 install:
 	poetry install
+	cd frontend && npm install
 
 analyze:
 	ruff check .
@@ -16,8 +17,11 @@ pre-commit:
     pre-commit run --all-files
 
 run arg="":
-	if {{arg}} == "backend" {
-		cd backend
-		python -m apps.backend
-
-	python -m apps.main
+	#!/usr/bin/env bash
+	if [[ "{{arg}}" == "backend" ]]; then
+		cd backend && python -m apps.main
+	elif [[ "{{arg}}" == "frontend" ]]; then
+		cd frontend && npm install && npm run dev
+	else
+		python -m apps.main
+	fi
