@@ -11,7 +11,8 @@ import {
   Stack,
   Box,
   Alert,
-  Loader
+  Loader,
+  useMantineColorScheme
 } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { 
@@ -43,6 +44,7 @@ export default function ChatBase({ mode, title, description }: ChatBaseProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const { colorScheme } = useMantineColorScheme()
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -152,6 +154,23 @@ export default function ChatBase({ mode, title, description }: ChatBaseProps) {
     }
   }
 
+  // Get theme-aware colors for chat bubbles
+  const getUserBubbleColor = () => {
+    return colorScheme === 'dark' ? 'blue.9' : 'blue.0'
+  }
+
+  const getAiBubbleColor = () => {
+    return colorScheme === 'dark' ? 'green.9' : 'green.0'
+  }
+
+  const getUserTextColor = () => {
+    return colorScheme === 'dark' ? 'blue.2' : 'blue.9'
+  }
+
+  const getAiTextColor = () => {
+    return colorScheme === 'dark' ? 'green.2' : 'green.9'
+  }
+
   if (startChatMutation.isPending) {
     return (
       <Container size="md">
@@ -191,7 +210,7 @@ export default function ChatBase({ mode, title, description }: ChatBaseProps) {
               {messages.map((message) => (
                 <Box key={message.id}>
                   <Group gap="xs" mb="xs">
-                    <Text size="sm" fw={500} c={message.sender === 'user' ? 'blue' : 'green'}>
+                    <Text size="sm" fw={500} c={message.sender === 'user' ? getUserTextColor() : getAiTextColor()}>
                       {message.sender === 'user' ? 'You' : 'AI'}
                     </Text>
                     <Text size="xs" c="dimmed">
@@ -200,10 +219,10 @@ export default function ChatBase({ mode, title, description }: ChatBaseProps) {
                   </Group>
                   <Paper 
                     p="sm" 
-                    bg={message.sender === 'user' ? 'blue.0' : 'green.0'}
+                    bg={message.sender === 'user' ? getUserBubbleColor() : getAiBubbleColor()}
                     style={{ maxWidth: '80%', marginLeft: message.sender === 'user' ? 'auto' : '0' }}
                   >
-                    <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
+                    <Text size="sm" c={colorScheme === 'dark' ? 'white' : 'dark'} style={{ whiteSpace: 'pre-wrap' }}>
                       {message.content}
                     </Text>
                   </Paper>
