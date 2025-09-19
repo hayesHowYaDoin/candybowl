@@ -19,7 +19,7 @@ StatusCode: TypeAlias = (
     tuple[Response, Literal[200]] | tuple[Response, Literal[500]]
 )
 
-_inventory_csv = "data/inventory.csv"
+_inventory_csv = "backend/data/inventory.csv"
 
 
 @bp.route("/api/inventory", methods=["GET"])

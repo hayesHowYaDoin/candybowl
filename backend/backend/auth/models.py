@@ -37,7 +37,7 @@ class User:
 
 
 class UserManager:
-    def __init__(self, csv_path: str = "data/users.csv"):
+    def __init__(self, csv_path: str = "backend/data/users.csv"):
         self.csv_path = csv_path
         self._ensure_file_exists()
 

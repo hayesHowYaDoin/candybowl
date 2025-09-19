@@ -3,7 +3,7 @@ from loguru import logger
 from backend.inventory import InventoryManagerCSV
 
 
-_inventory_csv = "data/inventory.csv"
+_inventory_csv = "backend/data/inventory.csv"
 
 
 def get_inventory() -> str:
