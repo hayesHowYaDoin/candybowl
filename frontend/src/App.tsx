@@ -3,7 +3,9 @@ import { AppShell, Text, Group, Button, ActionIcon } from '@mantine/core'
 import { Link, useLocation } from 'react-router-dom'
 import { useColorScheme } from './hooks/useColorScheme'
 import InventoryPage from './pages/InventoryPage'
-import ChatPage from './pages/ChatPage'
+import RequestChatPage from './pages/RequestChatPage'
+import HaggleChatPage from './pages/HaggleChatPage'
+import RestockChatPage from './pages/RestockChatPage'
 
 function App() {
   const location = useLocation()
@@ -41,18 +43,38 @@ function App() {
         </Button>
         <Button 
           component={Link} 
-          to="/chat" 
-          variant={location.pathname === '/chat' ? 'filled' : 'subtle'}
+          to="/chat/request" 
+          variant={location.pathname === '/chat/request' ? 'filled' : 'subtle'}
+          fullWidth
+          mb="xs"
+        >
+          Request Items
+        </Button>
+        <Button 
+          component={Link} 
+          to="/chat/haggle" 
+          variant={location.pathname === '/chat/haggle' ? 'filled' : 'subtle'}
+          fullWidth
+          mb="xs"
+        >
+          Haggle Prices
+        </Button>
+        <Button 
+          component={Link} 
+          to="/chat/restock" 
+          variant={location.pathname === '/chat/restock' ? 'filled' : 'subtle'}
           fullWidth
         >
-          Chat with AI
+          Auto Restock
         </Button>
       </AppShell.Navbar>
 
       <AppShell.Main>
         <Routes>
           <Route path="/" element={<InventoryPage />} />
-          <Route path="/chat" element={<ChatPage />} />
+          <Route path="/chat/request" element={<RequestChatPage />} />
+          <Route path="/chat/haggle" element={<HaggleChatPage />} />
+          <Route path="/chat/restock" element={<RestockChatPage />} />
         </Routes>
       </AppShell.Main>
     </AppShell>

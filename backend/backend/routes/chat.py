@@ -1,5 +1,6 @@
 from typing import Literal, TypeAlias
 import uuid
+from datetime import datetime, timedelta
 
 from flask import Blueprint, jsonify, request
 from flask.wrappers import Response
@@ -14,7 +15,11 @@ from backend.ai.chat import (
 
 bp = Blueprint("chat", __name__)
 
-chats: dict[str, Chat] = {}
+# Chat sessions with timestamps for cleanup
+chats: dict[str, dict] = {}
+
+# Chat session expiry time (30 minutes)
+CHAT_EXPIRY_MINUTES = 30
 
 StatusCode: TypeAlias = (
     tuple[Response, Literal[200]]
@@ -24,13 +29,44 @@ StatusCode: TypeAlias = (
 )
 
 
+def cleanup_expired_chats():
+    """Remove chat sessions older than CHAT_EXPIRY_MINUTES."""
+    current_time = datetime.now()
+    expired_ids = []
+
+    for chat_id, session_data in chats.items():
+        if current_time - session_data["created_at"] > timedelta(
+            minutes=CHAT_EXPIRY_MINUTES
+        ):
+            expired_ids.append(chat_id)
+
+    for chat_id in expired_ids:
+        del chats[chat_id]
+
+    return len(expired_ids)
+
+
+def get_active_chat(chat_id: str) -> Chat | None:
+    """Get an active chat session, cleaning up expired ones first."""
+    cleanup_expired_chats()
+    session_data = chats.get(chat_id)
+    return session_data["chat"] if session_data else None
+
+
 @bp.route(rule="/chat/request", methods=["GET"])
 def request_item() -> StatusCode:
     """Starts a request session."""
     try:
+        # Clean up expired chats before creating new one
+        cleanup_expired_chats()
+
         chat = request_chat()
         chat_id = str(uuid.uuid4())
-        chats[chat_id] = chat
+        chats[chat_id] = {
+            "chat": chat,
+            "created_at": datetime.now(),
+            "last_accessed": datetime.now(),
+        }
 
         return jsonify({"chat_id": chat_id}), 200
 
@@ -42,9 +78,16 @@ def request_item() -> StatusCode:
 def haggle() -> StatusCode:
     """Starts a haggling session."""
     try:
+        # Clean up expired chats before creating new one
+        cleanup_expired_chats()
+
         chat = haggle_chat()
         chat_id = str(uuid.uuid4())
-        chats[chat_id] = chat
+        chats[chat_id] = {
+            "chat": chat,
+            "created_at": datetime.now(),
+            "last_accessed": datetime.now(),
+        }
 
         return jsonify({"chat_id": chat_id}), 200
 
@@ -56,9 +99,16 @@ def haggle() -> StatusCode:
 def restock() -> StatusCode:
     """Starts a restocking session."""
     try:
+        # Clean up expired chats before creating new one
+        cleanup_expired_chats()
+
         chat, response = restock_chat()
         chat_id = str(uuid.uuid4())
-        chats[chat_id] = chat
+        chats[chat_id] = {
+            "chat": chat,
+            "created_at": datetime.now(),
+            "last_accessed": datetime.now(),
+        }
 
         return jsonify({"chat_id": chat_id, "response": response}), 200
 
@@ -73,9 +123,14 @@ def message() -> StatusCode:
         if request.json is None:
             return jsonify({"error": "Invalid request format"}), 400
 
-        chat = chats.get(request.json.get("chat_id"))
+        chat_id = request.json.get("chat_id")
+        chat = get_active_chat(chat_id)
         if not chat:
-            return jsonify({"error": "Chat not found"}), 404
+            return jsonify({"error": "Chat not found or expired"}), 404
+
+        # Update last accessed time
+        if chat_id in chats:
+            chats[chat_id]["last_accessed"] = datetime.now()
 
         message = request.json.get("message")
         if not message:
@@ -88,6 +143,61 @@ def message() -> StatusCode:
             ), 500
 
         return jsonify({"response": response}), 200
+
+    except Exception as ex:
+        return jsonify({"error": str(ex)}), 500
+
+
+@bp.route("/chat/status", methods=["GET"])
+def chat_status() -> StatusCode:
+    """Returns information about active chat sessions."""
+    try:
+        # Clean up expired chats first
+        expired_count = cleanup_expired_chats()
+
+        active_sessions = []
+        current_time = datetime.now()
+
+        for chat_id, session_data in chats.items():
+            age_minutes = (
+                current_time - session_data["created_at"]
+            ).total_seconds() / 60
+            last_active_minutes = (
+                current_time - session_data["last_accessed"]
+            ).total_seconds() / 60
+
+            active_sessions.append(
+                {
+                    "chat_id": chat_id,
+                    "age_minutes": round(age_minutes, 2),
+                    "last_active_minutes": round(last_active_minutes, 2),
+                }
+            )
+
+        return jsonify(
+            {
+                "active_sessions": len(chats),
+                "sessions_cleaned": expired_count,
+                "expiry_minutes": CHAT_EXPIRY_MINUTES,
+                "sessions": active_sessions,
+            }
+        ), 200
+
+    except Exception as ex:
+        return jsonify({"error": str(ex)}), 500
+
+
+@bp.route("/chat/cleanup", methods=["POST"])
+def manual_cleanup() -> StatusCode:
+    """Manually trigger cleanup of expired chat sessions."""
+    try:
+        expired_count = cleanup_expired_chats()
+        return jsonify(
+            {
+                "message": f"Cleaned up {expired_count} expired chat sessions",
+                "active_sessions": len(chats),
+            }
+        ), 200
 
     except Exception as ex:
         return jsonify({"error": str(ex)}), 500
