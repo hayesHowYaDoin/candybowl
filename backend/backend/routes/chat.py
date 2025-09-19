@@ -12,6 +12,7 @@ from backend.ai.chat import (
     request_chat,
     send_message,
 )
+from backend.auth.jwt_auth import require_auth, require_admin
 
 bp = Blueprint("chat", __name__)
 
@@ -54,6 +55,7 @@ def get_active_chat(chat_id: str) -> Chat | None:
 
 
 @bp.route(rule="/chat/request", methods=["GET"])
+@require_auth
 def request_item() -> StatusCode:
     """Starts a request session."""
     try:
@@ -75,6 +77,7 @@ def request_item() -> StatusCode:
 
 
 @bp.route("/chat/haggle", methods=["GET"])
+@require_auth
 def haggle() -> StatusCode:
     """Starts a haggling session."""
     try:
@@ -96,6 +99,8 @@ def haggle() -> StatusCode:
 
 
 @bp.route("/chat/restock", methods=["GET"])
+@require_auth
+@require_admin
 def restock() -> StatusCode:
     """Starts a restocking session."""
     try:
@@ -117,6 +122,7 @@ def restock() -> StatusCode:
 
 
 @bp.route("/chat/message", methods=["POST"])
+@require_auth
 def message() -> StatusCode:
     """Sends a message to the chat and returns the response."""
     try:
@@ -149,6 +155,8 @@ def message() -> StatusCode:
 
 
 @bp.route("/chat/status", methods=["GET"])
+@require_auth
+@require_admin
 def chat_status() -> StatusCode:
     """Returns information about active chat sessions."""
     try:
@@ -188,6 +196,8 @@ def chat_status() -> StatusCode:
 
 
 @bp.route("/chat/cleanup", methods=["POST"])
+@require_auth
+@require_admin
 def manual_cleanup() -> StatusCode:
     """Manually trigger cleanup of expired chat sessions."""
     try:

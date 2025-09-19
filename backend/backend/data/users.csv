@@ -1,0 +1,2 @@
+user_id,username,email,password_hash,role,created_at,is_active
+13ea0d8f-ff57-486b-a1a4-b5d03ff30d9d,testuser,test@example.com,ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f,admin,2025-09-19T08:37:20.195756,True

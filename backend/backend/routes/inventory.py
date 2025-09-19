@@ -1,9 +1,10 @@
 from typing import Literal, TypeAlias
 
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from flask.wrappers import Response
 
 from backend.inventory import InventoryManagerCSV
+from backend.auth.jwt_auth import require_auth, require_admin
 
 bp = Blueprint("inventory", __name__)
 
@@ -15,6 +16,7 @@ _inventory_csv = "data/inventory.csv"
 
 
 @bp.route("/api/inventory", methods=["GET"])
+@require_auth
 def get_inventory() -> StatusCode:
     """Returns the current inventory as JSON."""
     try:
@@ -31,11 +33,10 @@ def get_inventory() -> StatusCode:
 
 
 @bp.route("/api/purchase", methods=["POST"])
+@require_auth
 def purchase_item() -> StatusCode:
     """Handles item purchases by decreasing inventory quantity."""
     try:
-        from flask import request
-
         if request.json is None:
             return jsonify({"error": "Invalid request format"}), 400
 
@@ -68,6 +69,9 @@ def purchase_item() -> StatusCode:
         unit_price = float(item_row.iloc[0]["sell_price_usd"])
         total_price = unit_price * quantity
 
+        # Get current user info
+        current_user = request.current_user
+
         return jsonify(
             {
                 "message": "Purchase successful",
@@ -75,6 +79,158 @@ def purchase_item() -> StatusCode:
                 "quantity_purchased": quantity,
                 "total_price": total_price,
                 "remaining_quantity": new_quantity,
+                "purchased_by": current_user["username"],
+            }
+        ), 200
+
+    except Exception as ex:
+        return jsonify({"error": str(ex)}), 500
+
+
+@bp.route("/api/inventory", methods=["POST"])
+@require_auth
+@require_admin
+def add_inventory_item() -> StatusCode:
+    """Add a new item to inventory (admin only)."""
+    try:
+        if request.json is None:
+            return jsonify({"error": "Invalid request format"}), 400
+
+        item_name = request.json.get("item_name", "").strip()
+        link = request.json.get("link", "").strip()
+        quantity = request.json.get("quantity", 0)
+        purchase_price = request.json.get("purchase_price", 0.0)
+        sell_price = request.json.get("sell_price", 0.0)
+        description = request.json.get("description", "").strip()
+
+        # Validation
+        if not all([item_name, link, description]):
+            return jsonify(
+                {"error": "item_name, link, and description are required"}
+            ), 400
+
+        if quantity < 0:
+            return jsonify({"error": "quantity must be non-negative"}), 400
+
+        if purchase_price < 0 or sell_price < 0:
+            return jsonify({"error": "prices must be non-negative"}), 400
+
+        if sell_price <= purchase_price:
+            return jsonify(
+                {"error": "sell_price must be greater than purchase_price"}
+            ), 400
+
+        inventory_manager = InventoryManagerCSV(_inventory_csv)
+
+        # Use the existing stock_item method
+        item_id = inventory_manager.stock_item(
+            item_name=item_name,
+            link=link,
+            quantity=quantity,
+            price=purchase_price,
+            description=description,
+        )
+
+        # Update the sell price
+        inventory_manager.set_price(item_id, sell_price)
+
+        current_user = request.current_user
+
+        return jsonify(
+            {
+                "message": "Item added successfully",
+                "item_id": item_id,
+                "item_name": item_name,
+                "quantity": quantity,
+                "purchase_price": purchase_price,
+                "sell_price": sell_price,
+                "added_by": current_user["username"],
+            }
+        ), 201
+
+    except Exception as ex:
+        return jsonify({"error": str(ex)}), 500
+
+
+@bp.route("/api/inventory/<item_id>", methods=["PUT"])
+@require_auth
+@require_admin
+def update_inventory_item(item_id: str) -> StatusCode:
+    """Update an existing inventory item (admin only)."""
+    try:
+        if request.json is None:
+            return jsonify({"error": "Invalid request format"}), 400
+
+        inventory_manager = InventoryManagerCSV(_inventory_csv)
+        inventory_df = inventory_manager.get_inventory()
+
+        # Check if item exists
+        item_row = inventory_df[inventory_df["item_id"] == item_id]
+        if item_row.empty:
+            return jsonify({"error": "Item not found"}), 404
+
+        # Get update fields
+        quantity = request.json.get("quantity")
+        sell_price = request.json.get("sell_price")
+
+        updates_made = []
+
+        # Update quantity if provided
+        if quantity is not None:
+            if quantity < 0:
+                return jsonify({"error": "quantity must be non-negative"}), 400
+            inventory_manager._update_quantity(item_id, quantity)
+            updates_made.append(f"quantity: {quantity}")
+
+        # Update sell price if provided
+        if sell_price is not None:
+            if sell_price < 0:
+                return jsonify(
+                    {"error": "sell_price must be non-negative"}
+                ), 400
+            inventory_manager.set_price(item_id, sell_price)
+            updates_made.append(f"sell_price: ${sell_price:.2f}")
+
+        current_user = request.current_user
+
+        return jsonify(
+            {
+                "message": f"Item updated: {', '.join(updates_made)}",
+                "item_id": item_id,
+                "updated_by": current_user["username"],
+            }
+        ), 200
+
+    except Exception as ex:
+        return jsonify({"error": str(ex)}), 500
+
+
+@bp.route("/api/inventory/<item_id>", methods=["DELETE"])
+@require_auth
+@require_admin
+def delete_inventory_item(item_id: str) -> StatusCode:
+    """Delete an inventory item (admin only)."""
+    try:
+        inventory_manager = InventoryManagerCSV(_inventory_csv)
+        inventory_df = inventory_manager.get_inventory()
+
+        # Check if item exists
+        item_row = inventory_df[inventory_df["item_id"] == item_id]
+        if item_row.empty:
+            return jsonify({"error": "Item not found"}), 404
+
+        item_name = item_row.iloc[0]["item_name"]
+
+        # Remove item by setting quantity to 0 (soft delete approach)
+        inventory_manager._update_quantity(item_id, 0)
+
+        current_user = request.current_user
+
+        return jsonify(
+            {
+                "message": f"Item '{item_name}' removed from inventory",
+                "item_id": item_id,
+                "removed_by": current_user["username"],
             }
         ), 200
 

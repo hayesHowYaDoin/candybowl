@@ -2,6 +2,7 @@ default:
 	@just --list
 
 install:
+	poetry lock
 	poetry install
 	cd frontend && npm install
 
