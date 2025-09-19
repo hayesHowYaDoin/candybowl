@@ -1,1 +1,6 @@
 item_id,item_name,link,quantity,total_purchase_price_usd,sell_price_usd,description
+550e8400-e29b-41d4-a716-446655440001,Dark Chocolate Truffles,https://example.com/truffles,15,10.99,12.99,Premium Belgian dark chocolate truffles with a smooth ganache center. Perfect for chocolate lovers who appreciate rich and decadent flavors.
+550e8400-e29b-41d4-a716-446655440002,Gummy Bears Assorted,https://example.com/gummybears,25,2.99,3.99,Classic chewy gummy bears in multiple fruit flavors including cherry strawberry lemon orange and grape. A nostalgic treat for all ages.
+550e8400-e29b-41d4-a716-446655440003,Artisan Lollipops,https://example.com/lollipops,7,6.5,8.5,Handcrafted lollipops made with organic cane sugar and natural fruit extracts. Each pop is a work of art with unique swirl patterns.
+550e8400-e29b-41d4-a716-446655440004,Sour Patch Kids,https://example.com/sourpatch,20,3.25,4.25,The classic sour then sweet candy that kids and adults love. First they're sour then they're sweet!
+550e8400-e29b-41d4-a716-446655440005,Chocolate Chip Cookies,https://example.com/cookies,12,5.75,6.75,Freshly baked chocolate chip cookies with real butter and premium chocolate chips. Soft chewy and irresistible.

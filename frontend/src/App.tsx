@@ -1,11 +1,13 @@
 import { Routes, Route } from 'react-router-dom'
-import { AppShell, Text, Group, Button } from '@mantine/core'
+import { AppShell, Text, Group, Button, ActionIcon } from '@mantine/core'
 import { Link, useLocation } from 'react-router-dom'
+import { useColorScheme } from './hooks/useColorScheme'
 import InventoryPage from './pages/InventoryPage'
 import ChatPage from './pages/ChatPage'
 
 function App() {
   const location = useLocation()
+  const { colorScheme, toggleColorScheme } = useColorScheme()
 
   return (
     <AppShell
@@ -16,6 +18,14 @@ function App() {
       <AppShell.Header>
         <Group h="100%" px="md" justify="space-between">
           <Text size="xl" fw={700}>Candy Bowl Store</Text>
+          <ActionIcon
+            variant="outline"
+            size="lg"
+            onClick={toggleColorScheme}
+            title={`Switch to ${colorScheme === 'dark' ? 'light' : 'dark'} mode`}
+          >
+            {colorScheme === 'dark' ? '☀️' : '🌙'}
+          </ActionIcon>
         </Group>
       </AppShell.Header>
 
