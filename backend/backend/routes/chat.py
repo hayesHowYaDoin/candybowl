@@ -201,6 +201,21 @@ def chat_status() -> StatusCode:
         return jsonify({"error": str(ex)}), 500
 
 
+@bp.route("/chat/<chat_id>/close", methods=["DELETE"])
+@require_auth
+def close_chat(chat_id: str) -> StatusCode:
+    """Close a specific chat session."""
+    try:
+        if chat_id in chats:
+            del chats[chat_id]
+            return jsonify({"message": "Chat session closed"}), 200
+        else:
+            return jsonify({"error": "Chat session not found"}), 404
+
+    except Exception as ex:
+        return jsonify({"error": str(ex)}), 500
+
+
 @bp.route("/chat/cleanup", methods=["POST"])
 @require_auth
 @require_admin

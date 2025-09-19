@@ -19,6 +19,7 @@ import {
   startHaggleChat, 
   startRestockChat, 
   sendChatMessage,
+  closeChatSession,
   type ChatSession 
 } from '../lib/api'
 
@@ -112,6 +113,17 @@ export default function ChatBase({ mode, title, description }: ChatBaseProps) {
       startChatMutation.mutate()
     }
   }, [])
+
+  // Cleanup chat session when component unmounts
+  useEffect(() => {
+    return () => {
+      if (currentSession?.chat_id) {
+        closeChatSession(currentSession.chat_id).catch(() => {
+          // Silently handle cleanup errors
+        })
+      }
+    }
+  }, [currentSession?.chat_id])
 
   const handleSendMessage = () => {
     if (!inputValue.trim() || !currentSession) return
