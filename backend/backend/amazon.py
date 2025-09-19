@@ -2,8 +2,119 @@ from __future__ import annotations
 from dataclasses import dataclass
 import os
 import requests
+import re
 
 from loguru import logger
+
+
+def extract_unit_info(title: str, description: str = "") -> UnitInfo:
+    """Extract unit information from Amazon product title and description."""
+    text = f"{title} {description}".lower()
+
+    # Initialize unit info
+    unit_type = ""
+    unit_size = ""
+    package_count = 0
+    selling_unit = ""
+
+    # Extract package count - look for "pack of X", "count of X", "(X)" patterns
+    count_patterns = [
+        r"pack of (\d+)",
+        r"count of (\d+)",
+        r"\((\d+)\s*pack\)",
+        r"\((\d+)\s*count\)",
+        r"\(pack of (\d+)\)",
+        r"(\d+)\s*pack",
+        r"(\d+)-pack",
+        r"(\d+)\s*count",
+    ]
+
+    for pattern in count_patterns:
+        match = re.search(pattern, text)
+        if match:
+            package_count = int(match.group(1))
+            break
+
+    # Extract unit size - look for weight/volume measurements
+    size_patterns = [
+        (r"(\d+\.?\d*)\s*(fl oz|fluid ounce|fluid ounces)", "fl oz"),
+        (r"(\d+\.?\d*)\s*(oz|ounce|ounces)", "oz"),
+        (r"(\d+\.?\d*)\s*(lb|lbs|pound|pounds)", "lb"),
+        (r"(\d+\.?\d*)\s*(g|gram|grams)", "g"),
+        (r"(\d+\.?\d*)\s*(kg|kilogram|kilograms)", "kg"),
+        (r"(\d+\.?\d*)\s*(ml|milliliter|milliliters)", "ml"),
+        (r"(\d+\.?\d*)\s*(l|liter|liters)", "l"),
+    ]
+
+    for pattern, normalized_unit in size_patterns:
+        match = re.search(pattern, text)
+        if match:
+            unit_size = f"{match.group(1)}{normalized_unit}"
+            break
+
+    # Extract unit type - look for container types (order matters - more specific first)
+    type_patterns = [
+        "pack",
+        "packs",
+        "bag",
+        "bags",
+        "box",
+        "boxes",
+        "bottle",
+        "bottles",
+        "can",
+        "cans",
+        "jar",
+        "jars",
+        "piece",
+        "pieces",
+        "bar",
+        "bars",
+        "tube",
+        "tubes",
+    ]
+
+    # Extract unit type with proper priority handling
+    for unit in type_patterns:
+        if unit in text:
+            unit_type = unit.rstrip("s")  # Remove plural 's'
+            break
+
+    # Override with 'pack' only in specific contexts where no other container is the primary item
+    if "pack of" in text and not any(
+        f"{container}s" in text or f"{container}," in text
+        for container in ["can", "bottle", "jar", "bag", "box"]
+    ):
+        unit_type = "pack"
+
+    # Determine selling unit based on extracted info
+    if package_count > 1 and unit_size and unit_type:
+        selling_unit = f"individual {unit_size} {unit_type}"
+    elif unit_size and unit_type:
+        selling_unit = f"one {unit_size} {unit_type}"
+    elif unit_type:
+        selling_unit = f"one {unit_type}"
+    elif package_count > 1:
+        selling_unit = "individual piece"
+    else:
+        selling_unit = "individual item"
+
+    return UnitInfo(
+        unit_type=unit_type,
+        unit_size=unit_size,
+        package_count=package_count,
+        selling_unit=selling_unit,
+    )
+
+
+@dataclass(frozen=True, kw_only=True)
+class UnitInfo:
+    """Extracted unit information from product title/description."""
+
+    unit_type: str = ""  # bag, box, piece, bottle, etc.
+    unit_size: str = ""  # 2.17oz, 5lb, individual, etc.
+    package_count: int = 0  # number of units in package
+    selling_unit: str = ""  # what customer receives
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -14,16 +125,22 @@ class Item:
     price_usd: float
     url: str
     rating: float
+    unit_info: UnitInfo
 
     @staticmethod
     def from_canopy(item: dict) -> Item:
+        title = item["title"]
+        description = item["optimizedDescription"]
+        unit_info = extract_unit_info(title, description)
+
         return Item(
             id=item["asin"],
-            name=item["title"],
-            description=item["optimizedDescription"],
+            name=title,
+            description=description,
             price_usd=item["price"]["value"],
             url=item["url"],
             rating=item["rating"],
+            unit_info=unit_info,
         )
 
     def to_dict(self) -> dict:
@@ -34,6 +151,10 @@ class Item:
             "price_usd": self.price_usd,
             "url": self.url,
             "rating": self.rating,
+            "unit_type": self.unit_info.unit_type,
+            "unit_size": self.unit_info.unit_size,
+            "package_count": self.unit_info.package_count,
+            "selling_unit": self.unit_info.selling_unit,
         }
 
 

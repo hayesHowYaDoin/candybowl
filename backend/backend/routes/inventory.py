@@ -2,6 +2,7 @@ from typing import Literal, TypeAlias
 
 from flask import Blueprint, jsonify, request
 from flask.wrappers import Response
+import pandas as pd
 
 from backend.inventory import InventoryManagerCSV
 from backend.auth.jwt_auth import require_auth, require_admin
@@ -31,6 +32,38 @@ def get_inventory() -> StatusCode:
 
         # Convert DataFrame to list of dictionaries for JSON response
         inventory_data = inventory_df.to_dict("records")
+
+        # Clean up any NaN values that might still exist
+        import math
+        import numpy as np
+
+        for item in inventory_data:
+            for key, value in list(
+                item.items()
+            ):  # Use list() to avoid modification during iteration
+                # Check multiple NaN conditions
+                is_nan = False
+                try:
+                    if pd.isna(value):
+                        is_nan = True
+                    elif isinstance(value, float) and math.isnan(value):
+                        is_nan = True
+                    elif (
+                        hasattr(value, "__class__")
+                        and "numpy" in str(value.__class__)
+                        and np.isnan(value)
+                    ):
+                        is_nan = True
+                    elif str(value).lower() == "nan":
+                        is_nan = True
+                except (TypeError, AttributeError, ValueError):
+                    pass
+
+                if is_nan:
+                    if key == "package_count":
+                        item[key] = 0
+                    else:
+                        item[key] = ""
 
         return jsonify({"inventory": inventory_data}), 200
 

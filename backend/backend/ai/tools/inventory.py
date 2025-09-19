@@ -12,12 +12,16 @@ def get_inventory() -> str:
     Returns:
         A JSON string representation of the current inventory. The fields for each item are as follows:
             - item_id: Unique identifier for the item.
-            - item_name: The name of the item.
+            - item_name: The name of the item (includes size/unit information).
             - link: A link for where to purchase the item.
-            - quantity: The current quantity of the item in stock.
-            - total_purchase_price_usd: The price of one of the item in USD (note that one item can have multiple units).
-            - sell_price_usd: The price of a single unit of the item in USD.
-            - description: A description of the item.
+            - quantity: The current quantity of individual sellable units in stock (e.g., 36 = 36 individual bags).
+            - total_purchase_price_usd: The price paid to purchase this entire quantity from supplier.
+            - sell_price_usd: The price charged to customers for ONE individual unit.
+            - description: A description including exactly what one sellable unit contains.
+            - unit_type: Type of unit (bag, box, piece, etc.).
+            - unit_size: Size of each unit (2.17oz, 5lb, etc.).
+            - package_count: Number of units in the original Amazon package.
+            - selling_unit: Clear description of what customers receive (e.g., "individual 2.17oz bag").
     """
     logger.info("Retrieving current inventory.")
 
@@ -41,18 +45,26 @@ def stock_item(
     total_purchase_price_usd: float,
     sell_price_usd: float,
     description: str,
+    unit_type: str = "",
+    unit_size: str = "",
+    package_count: int = 0,
+    selling_unit: str = "",
 ) -> str:
     """Adds new items to the inventory.
 
     Increases the quantity of a given item if it already exists in the inventory, or adds a new entry if it does not.
 
     Args:
-        item_name: The name of the item.
-        link: The link to the item.
-        quantity: The quantity to add.
-        total_purchase_price_usd: The price of one of the item in USD (note that one item can have multiple units).
-        sell_price_usd: The price of a single unit of the item in USD.
-        description: A description of the item.
+        item_name: The name of the item (include size/unit info like "Skittles 2.17oz").
+        link: The link to the item on supplier website (Amazon, etc.).
+        quantity: The number of individual sellable units to add (e.g., 36 individual bags).
+        total_purchase_price_usd: The total cost to purchase this entire quantity from supplier.
+        sell_price_usd: The price to charge customers for ONE individual sellable unit.
+        description: A detailed description including exactly what one sellable unit contains.
+        unit_type: Type of unit (bag, box, piece, etc.) - extracted from Amazon listing.
+        unit_size: Size of each unit (2.17oz, 5lb, etc.) - extracted from Amazon listing.
+        package_count: Number of units in the original Amazon package - extracted from listing.
+        selling_unit: Clear description of what customers receive (e.g., "individual 2.17oz bag").
 
     Returns:
         A message indicating success or failure.
@@ -64,17 +76,21 @@ def stock_item(
 
     try:
         inventory = InventoryManagerCSV(_inventory_csv)
-        inventory.stock_item(
+        item_id = inventory.stock_item(
             item_name=item_name,
             link=link,
             quantity=quantity,
             total_purchase_price_usd=total_purchase_price_usd,
             sell_price_usd=sell_price_usd,
             description=description,
+            unit_type=unit_type,
+            unit_size=unit_size,
+            package_count=package_count,
+            selling_unit=selling_unit,
         )
 
         logger.info(f"Current inventory: {inventory.get_inventory().to_json()}")
-        return "Item added successfully."
+        return f"Item added successfully with ID: {item_id}. Unit info: {selling_unit}"
 
     except Exception as ex:
         logger.error(f"Error adding item: {ex}")

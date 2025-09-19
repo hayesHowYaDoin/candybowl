@@ -1,4 +1,5 @@
 from loguru import logger
+from backend.amazon import search_product as amazon_search_product
 
 
 def search_product(name: str) -> str:
@@ -20,8 +21,8 @@ def search_product(name: str) -> str:
     logger.info(f"Searching for product: {name}")
 
     try:
-        items = search_product(name, limit=5)
-        if items is None:
+        items = amazon_search_product(name, limit=5)
+        if items is None or len(items) == 0:
             logger.info("No items found for the given product name.")
             return "Error: No items found."
 

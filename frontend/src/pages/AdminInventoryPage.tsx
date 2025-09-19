@@ -19,16 +19,7 @@ import {
 } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { api } from '../lib/api'
-
-interface InventoryItem {
-  item_id: string
-  item_name: string
-  link: string
-  quantity: number
-  total_purchase_price_usd: number
-  sell_price_usd: number
-  description: string
-}
+import type { InventoryItem } from '../lib/api'
 
 interface AddItemForm {
   item_name: string
@@ -282,6 +273,7 @@ export default function AdminInventoryPage() {
                 <Table.Thead>
                   <Table.Tr>
                     <Table.Th>Item Name</Table.Th>
+                    <Table.Th>Unit Info</Table.Th>
                     <Table.Th>Quantity</Table.Th>
                     <Table.Th>Purchase Price</Table.Th>
                     <Table.Th>Sell Price</Table.Th>
@@ -301,6 +293,11 @@ export default function AdminInventoryPage() {
                               {item.description}
                             </Text>
                           </div>
+                        </Table.Td>
+                        <Table.Td>
+                          <Text size="sm">
+                            {item.selling_unit || 'No unit info'}
+                          </Text>
                         </Table.Td>
                         <Table.Td>{item.quantity}</Table.Td>
                         <Table.Td>${item.total_purchase_price_usd.toFixed(2)}</Table.Td>

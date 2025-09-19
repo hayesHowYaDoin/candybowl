@@ -16,7 +16,8 @@ import {
   Stack
 } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
-import { getInventory, purchaseItem, type InventoryItem } from '../lib/api'
+import { getInventory, purchaseItem } from '../lib/api'
+import type { InventoryItem } from '../lib/api'
 
 function InventoryPage() {
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null)

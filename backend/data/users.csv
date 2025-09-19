@@ -1,3 +1,4 @@
 user_id,username,email,password_hash,role,created_at,is_active
 692b4c74-3f9b-4722-a7a0-30aa06203cad,jordan,jordanhayes98@gmail.com,13ec089c94cdba553dd1aec6b47e1635698c03d2f3dac83f53d3af6597275605,admin,2025-09-19T08:38:31.792566,True
 ec44aa89-bd4c-448e-91cb-a4b3b06db6ae,other,otheremail@gmail.com,0b14d501a594442a01c6859541bcb3e8164d183d32937b851835442f69d5c94e,user,2025-09-19T08:39:11.626882,True
+dab0a4b4-d8d7-4de6-a840-ef44097e376f,testuser,testuser@example.com,7e6e0c3079a08c5cc6036789b57e951f65f82383913ba1a49ae992544f1b4b6e,user,2025-09-19T15:53:22.582972,True

@@ -24,8 +24,25 @@ class InventoryManagerCSV:
                     "total_purchase_price_usd",
                     "sell_price_usd",
                     "description",
+                    "unit_type",
+                    "unit_size",
+                    "package_count",
+                    "selling_unit",
                 ]
             ).to_csv(self.csv_filepath, index=False)
+        else:
+            # Check if we need to add new columns to existing CSV
+            existing_df = pd.read_csv(self.csv_filepath)
+            new_columns = [
+                "unit_type",
+                "unit_size",
+                "package_count",
+                "selling_unit",
+            ]
+            for col in new_columns:
+                if col not in existing_df.columns:
+                    existing_df[col] = ""
+            existing_df.to_csv(self.csv_filepath, index=False)
 
     def _get_all_items(self) -> pd.DataFrame:
         """Returns the inventory from the CSV file."""
@@ -39,7 +56,18 @@ class InventoryManagerCSV:
 
     def get_inventory(self) -> pd.DataFrame:
         """Returns the inventory as a DataFrame."""
-        return self._get_all_items()
+        df = self._get_all_items()
+        # Fill NaN values in new columns with empty strings
+        text_columns = ["unit_type", "unit_size", "selling_unit"]
+        for col in text_columns:
+            if col in df.columns:
+                df[col] = df[col].fillna("")
+
+        # Fill NaN values in package_count with 0
+        if "package_count" in df.columns:
+            df["package_count"] = df["package_count"].fillna(0).astype(int)
+
+        return df
 
     def _prune_inventory(self) -> None:
         """Removes items from the inventory that have a quantity of 0."""
@@ -86,7 +114,11 @@ class InventoryManagerCSV:
         total_purchase_price_usd: float,
         sell_price_usd: float,
         description: str,
-    ) -> None:
+        unit_type: str = "",
+        unit_size: str = "",
+        package_count: int = 0,
+        selling_unit: str = "",
+    ) -> str:
         """Adds new items to the inventory.
 
         Increases the quantity of a given item if it already exists in the inventory, or adds a new entry if it does not.
@@ -98,28 +130,40 @@ class InventoryManagerCSV:
             total_purchase_price_usd: The price of one of the item in USD (note that one item can have multiple units).
             sell_price_usd: The price of a single unit of the item in USD.
             description: A description of the item.
+            unit_type: Type of unit (bag, box, piece, handful, etc.).
+            unit_size: Size of each unit (2.17oz, 5lb, individual, etc.).
+            package_count: Number of units in the original package.
+            selling_unit: Description of what customers receive per purchase.
+
+        Returns:
+            The item_id of the added/updated item.
         """
         inventory = self._get_all_items()
-        if not inventory[
+        existing_item = inventory[
             (inventory["item_name"] == item_name) | (inventory["link"] == link)
-        ].empty:
+        ]
+
+        if not existing_item.empty:
             logger.info(
                 f"Item '{item_name}' already exists in inventory. Updating quantity..."
             )
-            item_id = inventory[
-                (inventory["item_name"] == item_name)
-                | (inventory["link"] == link)
-            ]["item_id"].values[0]
+            item_id = existing_item["item_id"].values[0]
             self._add_item(item_id, quantity)
+            return item_id
 
+        item_id = str(uuid.uuid4())
         new_row = {
-            "item_id": str(uuid.uuid4()),
+            "item_id": item_id,
             "item_name": item_name,
             "link": link,
-            "quantity": 0,
+            "quantity": quantity,
             "total_purchase_price_usd": total_purchase_price_usd,
             "sell_price_usd": sell_price_usd,
             "description": description,
+            "unit_type": unit_type,
+            "unit_size": unit_size,
+            "package_count": package_count,
+            "selling_unit": selling_unit,
         }
 
         inventory = pd.concat(
@@ -130,6 +174,7 @@ class InventoryManagerCSV:
             ignore_index=True,
         )
         self._set_all_items(inventory)
+        return item_id
 
     def set_price(self, item_id: str, new_price_usd: float) -> None:
         """Sets the price of an item in the inventory.
