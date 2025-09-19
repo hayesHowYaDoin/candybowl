@@ -19,6 +19,7 @@ discord-py = "^2.5.2"
 loguru = "^0.7.3"
 pandas = "^2.3.1"
 pyjwt = "^2.10.1"
+pydantic = "^2.10.5"
 
 [build-system]
 requires = ["poetry-core"]

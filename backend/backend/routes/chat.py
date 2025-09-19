@@ -13,6 +13,14 @@ from backend.ai.chat import (
     send_message,
 )
 from backend.auth.jwt_auth import require_auth, require_admin
+from backend.schemas.chat import (
+    ChatMessageRequest,
+    ChatMessageResponse,
+    ChatSessionResponse,
+    ChatStatusResponse,
+    CleanupResponse,
+)
+from backend.utils.validation import validate_json
 
 bp = Blueprint("chat", __name__)
 
@@ -70,7 +78,8 @@ def request_item() -> StatusCode:
             "last_accessed": datetime.now(),
         }
 
-        return jsonify({"chat_id": chat_id}), 200
+        response_data = ChatSessionResponse(chat_id=chat_id)
+        return jsonify(response_data.model_dump()), 200
 
     except Exception as ex:
         return jsonify({"error": str(ex)}), 500
@@ -92,7 +101,8 @@ def haggle() -> StatusCode:
             "last_accessed": datetime.now(),
         }
 
-        return jsonify({"chat_id": chat_id}), 200
+        response_data = ChatSessionResponse(chat_id=chat_id)
+        return jsonify(response_data.model_dump()), 200
 
     except Exception as ex:
         return jsonify({"error": str(ex)}), 500
@@ -115,7 +125,8 @@ def restock() -> StatusCode:
             "last_accessed": datetime.now(),
         }
 
-        return jsonify({"chat_id": chat_id, "response": response}), 200
+        response_data = ChatSessionResponse(chat_id=chat_id, response=response)
+        return jsonify(response_data.model_dump()), 200
 
     except Exception as ex:
         return jsonify({"error": str(ex)}), 500
@@ -123,32 +134,28 @@ def restock() -> StatusCode:
 
 @bp.route("/chat/message", methods=["POST"])
 @require_auth
+@validate_json(ChatMessageRequest)
 def message() -> StatusCode:
     """Sends a message to the chat and returns the response."""
     try:
-        if request.json is None:
-            return jsonify({"error": "Invalid request format"}), 400
+        validated_data: ChatMessageRequest = request.validated_data
 
-        chat_id = request.json.get("chat_id")
-        chat = get_active_chat(chat_id)
+        chat = get_active_chat(validated_data.chat_id)
         if not chat:
             return jsonify({"error": "Chat not found or expired"}), 404
 
         # Update last accessed time
-        if chat_id in chats:
-            chats[chat_id]["last_accessed"] = datetime.now()
+        if validated_data.chat_id in chats:
+            chats[validated_data.chat_id]["last_accessed"] = datetime.now()
 
-        message = request.json.get("message")
-        if not message:
-            return jsonify({"error": "Message cannot be empty"}), 400
-
-        response = send_message(chat, message)
+        response = send_message(chat, validated_data.message)
         if not response:
             return jsonify(
                 {"error": "Received empty response from the model"}
             ), 500
 
-        return jsonify({"response": response}), 200
+        response_data = ChatMessageResponse(response=response)
+        return jsonify(response_data.model_dump()), 200
 
     except Exception as ex:
         return jsonify({"error": str(ex)}), 500
@@ -182,14 +189,13 @@ def chat_status() -> StatusCode:
                 }
             )
 
-        return jsonify(
-            {
-                "active_sessions": len(chats),
-                "sessions_cleaned": expired_count,
-                "expiry_minutes": CHAT_EXPIRY_MINUTES,
-                "sessions": active_sessions,
-            }
-        ), 200
+        response_data = ChatStatusResponse(
+            active_sessions=len(chats),
+            sessions_cleaned=expired_count,
+            expiry_minutes=CHAT_EXPIRY_MINUTES,
+            sessions=active_sessions,
+        )
+        return jsonify(response_data.model_dump()), 200
 
     except Exception as ex:
         return jsonify({"error": str(ex)}), 500
@@ -202,12 +208,12 @@ def manual_cleanup() -> StatusCode:
     """Manually trigger cleanup of expired chat sessions."""
     try:
         expired_count = cleanup_expired_chats()
-        return jsonify(
-            {
-                "message": f"Cleaned up {expired_count} expired chat sessions",
-                "active_sessions": len(chats),
-            }
-        ), 200
+
+        response_data = CleanupResponse(
+            message=f"Cleaned up {expired_count} expired chat sessions",
+            active_sessions=len(chats),
+        )
+        return jsonify(response_data.model_dump()), 200
 
     except Exception as ex:
         return jsonify({"error": str(ex)}), 500
