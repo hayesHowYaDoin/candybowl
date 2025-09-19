@@ -5,6 +5,7 @@ import { useColorScheme } from './hooks/useColorScheme'
 import { useAuth } from './contexts/AuthContext'
 import AuthPage from './pages/AuthPage'
 import InventoryPage from './pages/InventoryPage'
+import CheckoutPage from './pages/CheckoutPage'
 import RequestChatPage from './pages/RequestChatPage'
 import HaggleChatPage from './pages/HaggleChatPage'
 import RestockChatPage from './pages/RestockChatPage'
@@ -122,6 +123,7 @@ function App() {
       <AppShell.Main>
         <Routes>
           <Route path="/" element={<InventoryPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/chat/request" element={<RequestChatPage />} />
           <Route path="/chat/haggle" element={<HaggleChatPage />} />
           <Route path="/chat/restock" element={

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import { 
   Container, 
   Title, 
@@ -13,18 +14,22 @@ import {
   Loader,
   Alert,
   Modal,
-  Stack
+  Stack,
+  ActionIcon
 } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { getInventory, purchaseItem } from '../lib/api'
 import type { InventoryItem } from '../lib/api'
+import { useCart } from '../contexts/CartContext'
 
 function InventoryPage() {
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null)
   const [purchaseQuantity, setPurchaseQuantity] = useState(1)
   const [modalOpened, setModalOpened] = useState(false)
   
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { addToCart, getTotalItems } = useCart()
 
   const { data: inventory, isLoading, error } = useQuery({
     queryKey: ['inventory'],
@@ -89,9 +94,37 @@ function InventoryPage() {
 
   const availableItems = inventory?.filter(item => item.quantity > 0) || []
 
+  const handleAddToCart = (item: InventoryItem) => {
+    setSelectedItem(item)
+    setPurchaseQuantity(1)
+    setModalOpened(true)
+  }
+
+  const handleAddToCartConfirm = () => {
+    if (selectedItem) {
+      addToCart(selectedItem, purchaseQuantity)
+      notifications.show({
+        title: 'Added to Cart!',
+        message: `Added ${purchaseQuantity} ${selectedItem.item_name} to cart`,
+        color: 'green',
+      })
+      setModalOpened(false)
+      setPurchaseQuantity(1)
+    }
+  }
+
   return (
     <Container size="lg">
-      <Title order={1} mb="xl">Candy Bowl Inventory</Title>
+      <Group justify="space-between" align="center" mb="xl">
+        <Title order={1}>Candy Bowl Inventory</Title>
+        <Button
+          variant="outline"
+          onClick={() => navigate('/checkout')}
+          leftSection={<span>🛒</span>}
+        >
+          Cart ({getTotalItems()})
+        </Button>
+      </Group>
       
       {availableItems.length === 0 ? (
         <Alert color="yellow" title="No Items Available">
@@ -105,7 +138,13 @@ function InventoryPage() {
                 <Stack justify="space-between" h="100%">
                   <div>
                     <Text fw={500} size="lg" mb="xs">{item.item_name}</Text>
-                    <Text size="sm" c="dimmed" mb="md">{item.description}</Text>
+                    <Text size="sm" c="dimmed" mb="xs">{item.description}</Text>
+                    
+                    {item.selling_unit && (
+                      <Text size="sm" fw={500} c="blue" mb="md">
+                        Unit: {item.selling_unit}
+                      </Text>
+                    )}
                     
                     <Group justify="space-between" mb="md">
                       <Badge color="blue" variant="light">
@@ -113,6 +152,9 @@ function InventoryPage() {
                       </Badge>
                       <Text fw={700} size="lg" c="green">
                         ${item.sell_price_usd.toFixed(2)}
+                        {item.selling_unit && (
+                          <Text size="xs" c="dimmed" span> / {item.selling_unit}</Text>
+                        )}
                       </Text>
                     </Group>
                   </div>
@@ -121,10 +163,10 @@ function InventoryPage() {
                     fullWidth 
                     mt="md" 
                     radius="md"
-                    onClick={() => handlePurchaseClick(item)}
+                    onClick={() => handleAddToCart(item)}
                     disabled={item.quantity === 0}
                   >
-                    Buy Now
+                    Add to Cart
                   </Button>
                 </Stack>
               </Card>
@@ -136,7 +178,7 @@ function InventoryPage() {
       <Modal
         opened={modalOpened}
         onClose={() => setModalOpened(false)}
-        title="Purchase Item"
+        title="Add to Cart"
         centered
       >
         {selectedItem && (
@@ -144,8 +186,15 @@ function InventoryPage() {
             <Text size="lg" fw={500}>{selectedItem.item_name}</Text>
             <Text size="sm" c="dimmed">{selectedItem.description}</Text>
             
+            {selectedItem.selling_unit && (
+              <Group>
+                <Text size="sm" fw={500}>You're buying:</Text>
+                <Badge variant="light" color="blue">{selectedItem.selling_unit}</Badge>
+              </Group>
+            )}
+            
             <NumberInput
-              label="Quantity"
+              label={`Quantity${selectedItem.selling_unit ? ` (${selectedItem.selling_unit} each)` : ''}`}
               value={purchaseQuantity}
               onChange={(value) => setPurchaseQuantity(Number(value) || 1)}
               min={1}
@@ -154,7 +203,12 @@ function InventoryPage() {
             
             <Group justify="space-between">
               <Text>Unit Price:</Text>
-              <Text fw={500}>${selectedItem.sell_price_usd.toFixed(2)}</Text>
+              <Text fw={500}>
+                ${selectedItem.sell_price_usd.toFixed(2)}
+                {selectedItem.selling_unit && (
+                  <Text size="xs" c="dimmed" span> per {selectedItem.selling_unit}</Text>
+                )}
+              </Text>
             </Group>
             
             <Group justify="space-between">
@@ -169,10 +223,9 @@ function InventoryPage() {
                 Cancel
               </Button>
               <Button 
-                onClick={handlePurchaseConfirm}
-                loading={purchaseMutation.isPending}
+                onClick={handleAddToCartConfirm}
               >
-                Confirm Purchase
+                Add to Cart
               </Button>
             </Group>
           </Stack>

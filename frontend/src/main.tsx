@@ -6,6 +6,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { Notifications } from '@mantine/notifications'
 import { ColorSchemeProvider, useColorScheme } from './hooks/useColorScheme'
 import { AuthProvider } from './contexts/AuthContext'
+import { CartProvider } from './contexts/CartContext'
 import App from './App.tsx'
 import '@mantine/core/styles.css'
 import '@mantine/notifications/styles.css'
@@ -31,7 +32,9 @@ createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <ColorSchemeProvider>
         <AuthProvider>
-          <AppWithTheme />
+          <CartProvider>
+            <AppWithTheme />
+          </CartProvider>
         </AuthProvider>
       </ColorSchemeProvider>
     </QueryClientProvider>
