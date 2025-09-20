@@ -6,6 +6,8 @@ import { useAuth } from './contexts/AuthContext'
 import AuthPage from './pages/AuthPage'
 import InventoryPage from './pages/InventoryPage'
 import CheckoutPage from './pages/CheckoutPage'
+import PaymentPage from './pages/PaymentPage'
+import PaymentSuccessPage from './pages/PaymentSuccessPage'
 import RequestChatPage from './pages/RequestChatPage'
 import HaggleChatPage from './pages/HaggleChatPage'
 import RestockChatPage from './pages/RestockChatPage'
@@ -39,7 +41,7 @@ function App() {
     >
       <AppShell.Header>
         <Group h="100%" px="md" justify="space-between">
-          <Text size="xl" fw={700}>Candy Bowl Store</Text>
+          <Text size="xl" fw={800} c="candy.6" style={{ fontFamily: 'Nunito, sans-serif' }}>🍬 Candy Bowl</Text>
           
           <Group>
             <Text size="sm">
@@ -124,6 +126,8 @@ function App() {
         <Routes>
           <Route path="/" element={<InventoryPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/payment" element={<PaymentPage />} />
+          <Route path="/payment-success" element={<PaymentSuccessPage />} />
           <Route path="/chat/request" element={<RequestChatPage />} />
           <Route path="/chat/haggle" element={<HaggleChatPage />} />
           <Route path="/chat/restock" element={

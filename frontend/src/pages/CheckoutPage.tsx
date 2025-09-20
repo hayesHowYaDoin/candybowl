@@ -35,21 +35,16 @@ function CheckoutPage() {
   }
 
   const handleContinueToPayment = () => {
-    // For now, this does nothing as requested
-    notifications.show({
-      title: 'Coming Soon',
-      message: 'Payment functionality will be implemented later',
-      color: 'blue'
-    })
+    navigate('/payment')
   }
 
   if (items.length === 0) {
     return (
       <Container size="md">
         <Stack align="center" mt="xl">
-          <Title order={2}>Your Cart is Empty</Title>
-          <Text c="dimmed" mb="xl">Add some items from the inventory to get started!</Text>
-          <Button onClick={() => navigate('/')}>
+          <Title order={2}>🛒 Your Cart is Empty</Title>
+          <Text c="dimmed" mb="xl">Add some sweet treats from the inventory to get started!</Text>
+          <Button color="candy" onClick={() => navigate('/')}>
             Continue Shopping
           </Button>
         </Stack>
@@ -60,7 +55,7 @@ function CheckoutPage() {
   return (
     <Container size="md">
       <Group justify="space-between" align="center" mb="xl">
-        <Title order={1}>Checkout</Title>
+        <Title order={1} c="candy.7">🛒 Checkout</Title>
         <Button variant="subtle" onClick={() => navigate('/')}>
           ← Continue Shopping
         </Button>
@@ -108,7 +103,7 @@ function CheckoutPage() {
                     <Text size="sm" c="dimmed">
                       ${item.sell_price_usd.toFixed(2)} each
                     </Text>
-                    <Text fw={700} size="lg" c="green">
+                    <Text fw={700} size="lg" c="candy.8">
                       ${(item.sell_price_usd * item.cartQuantity).toFixed(2)}
                     </Text>
                   </div>
@@ -133,7 +128,7 @@ function CheckoutPage() {
             
             <Group justify="space-between">
               <Text size="lg" fw={700}>Total Price:</Text>
-              <Text size="xl" fw={700} c="green">
+              <Text size="xl" fw={700} c="candy.8">
                 ${getTotalPrice().toFixed(2)}
               </Text>
             </Group>
@@ -156,6 +151,7 @@ function CheckoutPage() {
               
               <Button
                 size="lg"
+                color="candy"
                 onClick={handleContinueToPayment}
               >
                 Continue to Payment

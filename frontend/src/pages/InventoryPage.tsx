@@ -116,9 +116,10 @@ function InventoryPage() {
   return (
     <Container size="lg">
       <Group justify="space-between" align="center" mb="xl">
-        <Title order={1}>Candy Bowl Inventory</Title>
+        <Title order={1} c="candy.7">Inventory</Title>
         <Button
-          variant="outline"
+          variant="filled"
+          color="candy"
           onClick={() => navigate('/checkout')}
           leftSection={<span>🛒</span>}
         >
@@ -147,10 +148,10 @@ function InventoryPage() {
                     )}
                     
                     <Group justify="space-between" mb="md">
-                      <Badge color="blue" variant="light">
+                      <Badge color="candy" variant="light">
                         {item.quantity} in stock
                       </Badge>
-                      <Text fw={700} size="lg" c="green">
+                      <Text fw={700} size="lg" c="candy.8">
                         ${item.sell_price_usd.toFixed(2)}
                         {item.selling_unit && (
                           <Text size="xs" c="dimmed" span> / {item.selling_unit}</Text>
@@ -163,6 +164,7 @@ function InventoryPage() {
                     fullWidth 
                     mt="md" 
                     radius="md"
+                    color="candy"
                     onClick={() => handleAddToCart(item)}
                     disabled={item.quantity === 0}
                   >
@@ -213,7 +215,7 @@ function InventoryPage() {
             
             <Group justify="space-between">
               <Text fw={700}>Total:</Text>
-              <Text fw={700} size="lg" c="green">
+              <Text fw={700} size="lg" c="candy.8">
                 ${(selectedItem.sell_price_usd * purchaseQuantity).toFixed(2)}
               </Text>
             </Group>
@@ -223,6 +225,7 @@ function InventoryPage() {
                 Cancel
               </Button>
               <Button 
+                color="candy"
                 onClick={handleAddToCartConfirm}
               >
                 Add to Cart
