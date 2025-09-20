@@ -68,16 +68,20 @@ export default function ChatBase({ mode, title, description }: ChatBaseProps) {
       }
     },
     onSuccess: (data) => {
+      console.log('Chat session started:', data)
       setCurrentSession(data)
       setMessages([])
       
       if (data.response) {
+        console.log('Adding initial message:', data.response)
         setMessages([{
           id: '1',
           content: data.response,
           sender: 'ai',
           timestamp: new Date()
         }])
+      } else {
+        console.log('No initial response received')
       }
     },
     onError: (error: any) => {
@@ -156,19 +160,19 @@ export default function ChatBase({ mode, title, description }: ChatBaseProps) {
 
   // Get theme-aware colors for chat bubbles
   const getUserBubbleColor = () => {
-    return colorScheme === 'dark' ? 'blue.9' : 'blue.0'
+    return colorScheme === 'dark' ? 'candy.9' : 'candy.0'
   }
 
   const getAiBubbleColor = () => {
-    return colorScheme === 'dark' ? 'green.9' : 'green.0'
+    return colorScheme === 'dark' ? 'gray.8' : 'gray.1'
   }
 
   const getUserTextColor = () => {
-    return colorScheme === 'dark' ? 'blue.2' : 'blue.9'
+    return colorScheme === 'dark' ? 'candy.2' : 'candy.9'
   }
 
   const getAiTextColor = () => {
-    return colorScheme === 'dark' ? 'green.2' : 'green.9'
+    return colorScheme === 'dark' ? 'gray.2' : 'gray.9'
   }
 
   if (startChatMutation.isPending) {
@@ -203,7 +207,7 @@ export default function ChatBase({ mode, title, description }: ChatBaseProps) {
         <Box style={{ flex: 1, overflowY: 'auto', marginBottom: '1rem' }}>
           {messages.length === 0 ? (
             <Group justify="center" style={{ height: '100%' }} align="center">
-              <Text c="dimmed">Chat session started!</Text>
+              <Text c="dimmed">🤖 Starting chat session...</Text>
             </Group>
           ) : (
             <Stack gap="md">
@@ -211,7 +215,7 @@ export default function ChatBase({ mode, title, description }: ChatBaseProps) {
                 <Box key={message.id}>
                   <Group gap="xs" mb="xs">
                     <Text size="sm" fw={500} c={message.sender === 'user' ? getUserTextColor() : getAiTextColor()}>
-                      {message.sender === 'user' ? 'You' : 'AI'}
+                      {message.sender === 'user' ? 'You' : 'Gemini'}
                     </Text>
                     <Text size="xs" c="dimmed">
                       {message.timestamp.toLocaleTimeString()}
@@ -251,6 +255,20 @@ export default function ChatBase({ mode, title, description }: ChatBaseProps) {
           <Button 
             onClick={handleSendMessage}
             disabled={!inputValue.trim() || sendMessageMutation.isPending || !currentSession}
+            color="candy"
+            style={{
+              transition: 'all 0.15s ease',
+              transform: 'scale(1)'
+            }}
+            onMouseDown={(e) => {
+              e.currentTarget.style.transform = 'scale(0.95)'
+            }}
+            onMouseUp={(e) => {
+              e.currentTarget.style.transform = 'scale(1)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)'
+            }}
           >
             Send
           </Button>
