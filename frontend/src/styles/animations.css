@@ -1,0 +1,56 @@
+/* Cart bounce animation */
+@keyframes cartBounce {
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.1) rotate(-5deg);
+  }
+  50% {
+    transform: scale(1.05) rotate(3deg);
+  }
+  75% {
+    transform: scale(1.02) rotate(-1deg);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Button pulse animation for loading states */
+@keyframes buttonPulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Card entrance animation */
+@keyframes cardSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Success flash animation */
+@keyframes successFlash {
+  0% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(76, 175, 80, 0.1);
+  }
+  100% {
+    background-color: transparent;
+  }
+}

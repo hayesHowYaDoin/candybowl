@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { 
@@ -26,6 +26,7 @@ function InventoryPage() {
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null)
   const [purchaseQuantity, setPurchaseQuantity] = useState(1)
   const [modalOpened, setModalOpened] = useState(false)
+  const cartButtonRef = useRef<HTMLButtonElement>(null)
   
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -75,9 +76,58 @@ function InventoryPage() {
   if (isLoading) {
     return (
       <Container size="lg">
-        <Group justify="center" mt="xl">
-          <Loader size="lg" />
+        <Group justify="space-between" align="center" mb="xl">
+          <Title order={1} c="candy.7">Inventory</Title>
+          <Button
+            variant="filled"
+            color="candy"
+            disabled
+            leftSection={<span>🛒</span>}
+          >
+            Cart (0)
+          </Button>
         </Group>
+        
+        <Grid>
+          {[...Array(6)].map((_, index) => (
+            <Grid.Col key={index} span={{ base: 12, sm: 6, md: 4 }}>
+              <Card shadow="sm" padding="lg" radius="md" withBorder h="100%">
+                <Stack justify="space-between" h="100%">
+                  <div>
+                    <div style={{ 
+                      height: '24px', 
+                      backgroundColor: '#f0f0f0', 
+                      borderRadius: '4px',
+                      marginBottom: '8px',
+                      animation: 'buttonPulse 1.5s ease-in-out infinite'
+                    }} />
+                    <div style={{ 
+                      height: '60px', 
+                      backgroundColor: '#f8f8f8', 
+                      borderRadius: '4px',
+                      marginBottom: '16px',
+                      animation: 'buttonPulse 1.5s ease-in-out infinite 0.2s'
+                    }} />
+                    <div style={{ 
+                      height: '20px', 
+                      backgroundColor: '#f0f0f0', 
+                      borderRadius: '4px',
+                      width: '60%',
+                      animation: 'buttonPulse 1.5s ease-in-out infinite 0.4s'
+                    }} />
+                  </div>
+                  <div style={{ 
+                    height: '36px', 
+                    backgroundColor: '#e8e8e8', 
+                    borderRadius: '8px',
+                    marginTop: '16px',
+                    animation: 'buttonPulse 1.5s ease-in-out infinite 0.6s'
+                  }} />
+                </Stack>
+              </Card>
+            </Grid.Col>
+          ))}
+        </Grid>
       </Container>
     )
   }
@@ -100,9 +150,21 @@ function InventoryPage() {
     setModalOpened(true)
   }
 
+  const triggerCartAnimation = () => {
+    if (cartButtonRef.current) {
+      cartButtonRef.current.style.animation = 'none'
+      setTimeout(() => {
+        if (cartButtonRef.current) {
+          cartButtonRef.current.style.animation = 'cartBounce 0.6s ease'
+        }
+      }, 10)
+    }
+  }
+
   const handleAddToCartConfirm = () => {
     if (selectedItem) {
       addToCart(selectedItem, purchaseQuantity)
+      triggerCartAnimation()
       notifications.show({
         title: 'Added to Cart!',
         message: `Added ${purchaseQuantity} ${selectedItem.item_name} to cart`,
@@ -118,10 +180,24 @@ function InventoryPage() {
       <Group justify="space-between" align="center" mb="xl">
         <Title order={1} c="candy.7">Inventory</Title>
         <Button
+          ref={cartButtonRef}
           variant="filled"
           color="candy"
           onClick={() => navigate('/checkout')}
           leftSection={<span>🛒</span>}
+          style={{
+            transition: 'all 0.15s ease',
+            transform: 'scale(1)'
+          }}
+          onMouseDown={(e) => {
+            e.currentTarget.style.transform = 'scale(0.95)'
+          }}
+          onMouseUp={(e) => {
+            e.currentTarget.style.transform = 'scale(1)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)'
+          }}
         >
           Cart ({getTotalItems()})
         </Button>
@@ -133,9 +209,35 @@ function InventoryPage() {
         </Alert>
       ) : (
         <Grid>
-          {availableItems.map((item) => (
+          {availableItems.map((item, index) => (
             <Grid.Col key={item.item_id} span={{ base: 12, sm: 6, md: 4 }}>
-              <Card shadow="sm" padding="lg" radius="md" withBorder h="100%">
+              <Card 
+                shadow="sm" 
+                padding="lg" 
+                radius="md" 
+                withBorder 
+                h="100%"
+                style={{
+                  transition: 'all 0.2s ease',
+                  cursor: 'pointer',
+                  animation: `cardSlideIn 0.5s ease ${index * 0.1}s both`,
+                  ':hover': {
+                    transform: 'translateY(-2px) scale(1.02)',
+                    boxShadow: '0 8px 30px rgba(215, 22, 255, 0.15)',
+                    borderColor: 'rgba(215, 22, 255, 0.3)'
+                  }
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)'
+                  e.currentTarget.style.boxShadow = '0 8px 30px rgba(215, 22, 255, 0.15)'
+                  e.currentTarget.style.borderColor = 'rgba(215, 22, 255, 0.3)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0) scale(1)'
+                  e.currentTarget.style.boxShadow = ''
+                  e.currentTarget.style.borderColor = ''
+                }}
+              >
                 <Stack justify="space-between" h="100%">
                   <div>
                     <Text fw={500} size="lg" mb="xs">{item.item_name}</Text>
@@ -167,6 +269,19 @@ function InventoryPage() {
                     color="candy"
                     onClick={() => handleAddToCart(item)}
                     disabled={item.quantity === 0}
+                    style={{
+                      transition: 'all 0.15s ease',
+                      transform: 'scale(1)'
+                    }}
+                    onMouseDown={(e) => {
+                      e.currentTarget.style.transform = 'scale(0.95)'
+                    }}
+                    onMouseUp={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)'
+                    }}
                   >
                     Add to Cart
                   </Button>

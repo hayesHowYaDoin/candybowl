@@ -10,6 +10,7 @@ import { CartProvider } from './contexts/CartContext'
 import App from './App.tsx'
 import '@mantine/core/styles.css'
 import '@mantine/notifications/styles.css'
+import './styles/animations.css'
 
 const queryClient = new QueryClient()
 const theme = createTheme({

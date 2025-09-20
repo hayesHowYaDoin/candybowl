@@ -8,6 +8,7 @@ import InventoryPage from './pages/InventoryPage'
 import CheckoutPage from './pages/CheckoutPage'
 import PaymentPage from './pages/PaymentPage'
 import PaymentSuccessPage from './pages/PaymentSuccessPage'
+import AboutPage from './pages/AboutPage'
 import RequestChatPage from './pages/RequestChatPage'
 import HaggleChatPage from './pages/HaggleChatPage'
 import RestockChatPage from './pages/RestockChatPage'
@@ -70,10 +71,20 @@ function App() {
       <AppShell.Navbar p="md">
         <Button 
           component={Link} 
+          to="/about" 
+          variant={location.pathname === '/about' ? 'filled' : 'subtle'}
+          fullWidth
+          mb="sm"
+        >
+          About
+        </Button>
+        
+        <Button 
+          component={Link} 
           to="/" 
           variant={location.pathname === '/' ? 'filled' : 'subtle'}
           fullWidth
-          mb="sm"
+          mb="xs"
         >
           Inventory
         </Button>
@@ -128,6 +139,7 @@ function App() {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/payment" element={<PaymentPage />} />
           <Route path="/payment-success" element={<PaymentSuccessPage />} />
+          <Route path="/about" element={<AboutPage />} />
           <Route path="/chat/request" element={<RequestChatPage />} />
           <Route path="/chat/haggle" element={<HaggleChatPage />} />
           <Route path="/chat/restock" element={
