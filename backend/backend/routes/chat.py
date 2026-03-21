@@ -80,8 +80,10 @@ def request_item() -> StatusCode:
 
         # Send welcome message
         welcome_message = "Hi! 🍬 I'm ready to help you request new items for the candy bowl. Tell me what treats you'd like to see added, and I'll evaluate whether they would be profitable and a good fit for our bowl. What would you like to request?"
-        
-        response_data = ChatSessionResponse(chat_id=chat_id, response=welcome_message)
+
+        response_data = ChatSessionResponse(
+            chat_id=chat_id, response=welcome_message
+        )
         return jsonify(response_data.model_dump()), 200
 
     except Exception as ex:
@@ -106,8 +108,10 @@ def haggle() -> StatusCode:
 
         # Send welcome message
         welcome_message = "Hey there! 💰 Ready to negotiate? I'm here to discuss prices for items currently in the candy bowl. I'll try to get the best value for both of us, but I'm always open to reasonable offers. What item would you like to haggle over?"
-        
-        response_data = ChatSessionResponse(chat_id=chat_id, response=welcome_message)
+
+        response_data = ChatSessionResponse(
+            chat_id=chat_id, response=welcome_message
+        )
         return jsonify(response_data.model_dump()), 200
 
     except Exception as ex:

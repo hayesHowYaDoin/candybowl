@@ -4,6 +4,8 @@
   config = {
     packages = with pkgs; [
       just
+      ruff # For git hooks and CLI on NixOS
+      python313Packages.mypy # For git hooks and CLI on NixOS
       stdenv.cc.cc.lib # required by jupyter
       gcc-unwrapped # fix: libstdc++.so.6: cannot open shared object file
       libz # fix: for numpy/pandas import
@@ -35,9 +37,13 @@
       nixpkgs-fmt.enable = true;
       ruff.enable = true;
       ruff-format.enable = true;
+      mypy.enable = true;
     };
 
     # Ensure correct load path
     env.LD_LIBRARY_PATH = "${pkgs.gcc-unwrapped.lib}/lib64:${pkgs.libz}/lib";
+
+    # Ensure Nix tools are available for git hooks by prepending to PATH
+    env.PATH = "${pkgs.ruff}/bin:${pkgs.python313Packages.mypy}/bin:$PATH";
   };
 }

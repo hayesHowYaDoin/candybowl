@@ -87,3 +87,56 @@ The system consists of three applications that can run independently:
 - Use `just run backend` for the Flask API server
 - Use `just run frontend` for the React development server
 - All applications require appropriate environment variables (Google API key for AI, Discord token for bot)
+
+## Git Workflow and Code Quality
+
+This project enforces code quality standards through pre-commit hooks. **NEVER bypass these hooks** with `--no-verify` as formatting and linting are requirements.
+
+### Pre-commit Hooks
+- **ruff check** - Lints Python code for errors and style violations
+- **ruff format** - Automatically formats Python code to project standards
+- **mypy** - Type checking for Python code
+
+### Proper Commit Workflow
+
+**✅ CORRECT Way:**
+```bash
+# 1. Stage the files you want to commit
+git add file1.py file2.tsx file3.py
+
+# 2. Commit normally (let hooks run and auto-fix formatting)
+git commit -m "Your commit message"
+
+# 3. If hooks modified files, they're auto-staged - commit again if needed
+git commit --amend --no-edit
+```
+
+**❌ WRONG Way:**
+```bash
+# Never do this - bypasses quality checks
+git commit --no-verify -m "message"
+```
+
+### Handling Hook Failures
+
+If pre-commit hooks fail:
+
+1. **Read the error messages** - they show what needs to be fixed
+2. **Stage all relevant changes** to avoid conflicts with auto-formatting
+3. **Let the hooks auto-fix** formatting issues
+4. **Review the changes** the hooks made
+5. **Commit again** if the hooks modified files
+
+### Common Issues
+
+- **"Unstaged files detected"** - Stage all files you want to commit before committing
+- **"Files were modified by this hook"** - Hooks auto-fixed formatting, commit again to include fixes
+- **Ruff format failures** - Usually caused by unstaged changes conflicting with auto-formatting
+
+### Code Quality Standards
+
+- **Line length**: 80 characters maximum
+- **Python formatting**: Enforced by ruff format
+- **Type hints**: Required for all Python functions
+- **Import sorting**: Automatically handled by ruff
+- **Code style**: PEP 8 compliance enforced by ruff check

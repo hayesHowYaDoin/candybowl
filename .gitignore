@@ -166,4 +166,5 @@ cython_debug/
 .pre-commit-config.yaml
 
 # Database
-/data
+data/**
+.csv
